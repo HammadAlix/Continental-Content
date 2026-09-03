@@ -15,7 +15,6 @@ interface ScrollSequenceProps {
    * Ambience loop, tried in order — first source that decodes wins. See
    * AMBIENCE_SOURCES for why there is more than one.
    */
-  audioSrc?: readonly string[];
   /** Fires once the sequence reaches its final frame. */
   onComplete?: () => void;
   /** Rendered on top of the final frame — the interactive hub (door hotspots). */
@@ -68,15 +67,10 @@ const CUE_RETIRES_AT = 0.995;
  * still a third of the size. Whichever decodes first is the one that plays, and
  * only that one is ever downloaded.
  */
-const AMBIENCE_SOURCES = [
-  mediaUrl("/audio/rain-loop.webm"),
-  mediaUrl("/audio/rain-loop.flac"),
-] as const;
 
 export default function ScrollSequence({
   frameCount,
   scrollHeightVh = 500,
-  audioSrc = AMBIENCE_SOURCES,
   onComplete,
   children,
 }: ScrollSequenceProps) {
@@ -91,9 +85,6 @@ export default function ScrollSequence({
   const smoothFrameRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const progressRef = useRef(0);
-  const audioStartedRef = useRef(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const atEndRef = useRef(false);
   const cueRef = useRef(true);
@@ -353,60 +344,6 @@ export default function ScrollSequence({
     // audio seeks are audible. It also can't use <audio loop>: AAC and MP3 pad
     // every file with silence, so the loop point always clicks. Decoding into
     // an AudioBuffer and looping that is sample-accurate and truly gapless.
-    const startAudio = () => {
-      if (audioStartedRef.current) return;
-      audioStartedRef.current = true;
-
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
-      const ctx = new Ctx();
-      audioCtxRef.current = ctx;
-
-      // Walk the candidate formats until one both fetches and decodes. A
-      // browser that can't handle Opus fails at decodeAudioData, not at fetch,
-      // so the fallback has to sit behind the decode rather than the request.
-      const decodeFirstPlayable = async (
-        sources: readonly string[]
-      ): Promise<AudioBuffer> => {
-        let lastError: unknown;
-
-        for (const src of sources) {
-          try {
-            const res = await fetch(src);
-            if (!res.ok) throw new Error(`${res.status} for ${src}`);
-            return await ctx.decodeAudioData(await res.arrayBuffer());
-          } catch (err) {
-            lastError = err;
-          }
-        }
-
-        throw lastError ?? new Error("No playable ambience source");
-      };
-
-      decodeFirstPlayable(audioSrc)
-        .then((buffer) => {
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          source.loop = true;
-
-          const gain = ctx.createGain();
-          gain.gain.setValueAtTime(0, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 1.2);
-
-          source.connect(gain).connect(ctx.destination);
-          source.start();
-          audioSourceRef.current = source;
-
-          // Autoplay policy may have created the context suspended.
-          if (ctx.state === "suspended") ctx.resume().catch(() => {});
-        })
-        .catch(() => {
-          audioStartedRef.current = false;
-        });
-    };
-
     const tick = () => {
       const target = readTarget();
       const current = smoothFrameRef.current;
@@ -436,7 +373,6 @@ export default function ScrollSequence({
     };
 
     const kick = () => {
-      startAudio();
       if (rafRef.current === null) {
         rafRef.current = requestAnimationFrame(tick);
       }
@@ -454,22 +390,12 @@ export default function ScrollSequence({
     window.addEventListener("scroll", kick, { passive: true });
     window.addEventListener("resize", onResize);
 
-    // Browsers refuse audio until the page has been interacted with. Scroll
-    // alone doesn't always count as activation, so a click unlocks it too.
-    const unlockAudio = () => {
-      startAudio();
-    };
-    window.addEventListener("pointerdown", unlockAudio);
-
     return () => {
       window.removeEventListener("scroll", kick);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("pointerdown", unlockAudio);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      audioSourceRef.current?.stop();
-      audioCtxRef.current?.close().catch(() => {});
     };
-  }, [ready, frameCount, drawFrame, audioSrc]);
+  }, [ready, frameCount, drawFrame]);
 
   useEffect(() => {
     if (atEnd) onComplete?.();
