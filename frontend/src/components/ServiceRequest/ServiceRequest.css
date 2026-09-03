@@ -1,0 +1,306 @@
+/* A document left on the desk: dark, gold-ruled, deliberately narrow. */
+.service-request {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 2rem 2rem 1.85rem;
+  /* Deliberately thin — the panelling and firelight should read through it, so
+     the form feels laid on the desk rather than pasted over the photograph.
+     The blur is what keeps text legible at this opacity; without it the busy
+     bookshelves behind would fight every label. */
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 14, 9, 0.58),
+    rgba(8, 6, 4, 0.68)
+  );
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 156, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  color: #e8e0cf;
+}
+
+.service-request-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.85);
+}
+
+.service-request-title {
+  margin: -0.3rem 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 2.15rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  color: #d4af37;
+}
+
+/* Only carries its weight in the acknowledgement — on the form itself the
+   left-hand column has already said this, and repeating it costs the vertical
+   space that keeps everything on one screen. */
+.service-request-lede {
+  margin: -0.25rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(232, 224, 207, 0.62);
+}
+
+.service-request:not(.is-sent) .service-request-lede {
+  display: none;
+}
+
+/* ---- Fields ---- */
+
+.service-request-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.service-request-field label,
+.service-request-services legend {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.8);
+}
+
+.service-request input,
+.service-request textarea {
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  /* Darker than the card, not lighter — on a translucent panel a pale field
+     turns into a bright hole with the bookshelves showing through it. */
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 0;
+  color: #f2ead8;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.service-request textarea {
+  /* Fixed: a draggable corner lets the panel grow past the fold and breaks the
+     single-screen layout the page is built around. */
+  resize: none;
+  height: 6.5rem;
+  line-height: 1.55;
+}
+
+.service-request input:focus,
+.service-request textarea:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+.service-request [aria-invalid="true"] {
+  border-color: rgba(214, 90, 74, 0.75);
+}
+
+.service-request-error {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: #d9705f;
+}
+
+/* ---- Service picker ---- */
+
+.service-request-services {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.service-request-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+/* The radio itself is replaced by the chip — hidden with clip rather than
+   display:none so it stays focusable and keyboard arrow-keys still work. */
+.service-request-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+
+.service-request-option {
+  padding: 0.55rem 0.95rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: rgba(232, 224, 207, 0.72);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.service-request-option:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  color: #e8e0cf;
+}
+
+.service-request-option.is-selected {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.85);
+  color: #d4af37;
+}
+
+.service-request-option:focus-within {
+  outline: 1px solid rgba(212, 175, 55, 0.8);
+  outline-offset: 2px;
+}
+
+.service-request-note {
+  min-height: 1.1rem;
+  font-size: 0.73rem;
+  line-height: 1.5;
+  color: rgba(232, 224, 207, 0.45);
+}
+
+/* ---- Submit ---- */
+
+.service-request-submit {
+  margin-top: 0.35rem;
+  padding: 0.95rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.75);
+  color: #d4af37;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    color 200ms ease;
+}
+
+.service-request-submit:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.14);
+}
+
+.service-request-submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.service-request-failure {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #d9705f;
+}
+
+/* ---- Honeypot ---- */
+
+.service-request-courtesy {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---- Acknowledgement ---- */
+
+.service-request.is-sent {
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.service-request-reference {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+}
+
+.service-request-reference span {
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.65);
+}
+
+.service-request-reference strong {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #d4af37;
+}
+
+.service-request-again {
+  padding: 0.6rem 1.1rem;
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: rgba(212, 175, 55, 0.85);
+  font-family: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.service-request-again:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+
+@media (max-width: 640px) {
+  .service-request {
+    gap: 0.9rem;
+    padding: 1.6rem 1.15rem 1.5rem;
+  }
+
+  .service-request-title {
+    font-size: 1.8rem;
+  }
+
+  /* 16px is the threshold below which iOS Safari zooms the page on focus and
+     leaves the layout scrolled sideways. Never smaller than this on a phone. */
+  .service-request input,
+  .service-request textarea {
+    font-size: 1rem;
+  }
+
+  /* Full-width rows: five chips wrapping into ragged lines looks like a
+     mistake at this width, and each one gets a proper tap target this way. */
+  .service-request-options {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .service-request-option {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: 1rem;
+  }
+
+  .service-request-submit {
+    min-height: 3rem;
+  }
+}

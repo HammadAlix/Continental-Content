@@ -1,0 +1,228 @@
+.office {
+  position: relative;
+  min-height: 100vh;
+  background: #07050a;
+}
+
+/* The room itself — backdrop, scrim and entrance — lives in RoomBackdrop,
+   shared with the other rooms. Only this page's content is styled here. */
+
+/* ---- Content ---- */
+
+/* Two columns across one screen: the room's own copy low on the left, the form
+   on the right. Nothing scrolls — the office is a single held shot, not a page
+   you travel down. */
+/* Three tracks, not two: copy left, form right, and an empty middle column that
+   exists purely to keep the crest and the desk uncovered. Both outer columns
+   share one vertical axis — an editorial split reads as composed, whereas two
+   elements anchored at different heights reads as an accident. */
+.office-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 27rem) 1fr minmax(0, 32rem);
+  /* The row is centred in the viewport; the items sit at the top of it. That
+     gives a flush top edge across both columns and still keeps the pair
+     vertically centred on screen. */
+  align-content: center;
+  align-items: start;
+  min-height: 100dvh;
+  max-width: 96rem;
+  margin: 0 auto;
+  padding: 6rem 3.5rem 2.5rem;
+}
+
+/* Both columns follow the room in, staggered so the space is established before
+   anything is written on it. Independent of the image load — if the picture is
+   slow, the copy shouldn't be held hostage to it. */
+.office-intro,
+.office-content > .service-request {
+  animation: office-enter 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.office-intro {
+  grid-column: 1;
+  animation-delay: 180ms;
+}
+
+@keyframes office-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Explicit, because auto-placement would drop it into the empty middle track
+   and bury the desk and crest under the panel. */
+.office-content > .service-request {
+  grid-column: 3;
+  animation-delay: 320ms;
+}
+
+/* The rise is what causes trouble for anyone sensitive to motion. The fade
+   stays — appearing is not moving — but nothing travels. The backdrop's own
+   reduced-motion handling lives with it in RoomBackdrop. */
+@media (prefers-reduced-motion: reduce) {
+  .office-intro,
+  .office-content > .service-request {
+    animation: office-fade 400ms ease-out both;
+  }
+
+  @keyframes office-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* A rule instead of a box: enough structure to anchor the text against a busy
+   photograph without putting another panel on screen. */
+.office-intro::before {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 1px;
+  margin-bottom: 1.1rem;
+  background: linear-gradient(to right, #d4af37, rgba(212, 175, 55, 0));
+}
+
+/* Was too small and too dim to survive being laid over panelling — it read as
+   a stray line rather than a label. */
+.office-eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: #d4af37;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.95);
+}
+
+/* Set large and light rather than small and bold. The serif carries the weight
+   through its own contrast, so pushing the font-weight up only muddies it. */
+.office-heading {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2.9rem, 4.2vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: 0.005em;
+  color: #f4ecd8;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
+}
+
+.office-heading em {
+  font-style: italic;
+  color: #d4af37;
+}
+
+.office-copy {
+  margin: 1.35rem 0 0;
+  max-width: 24rem;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: rgba(238, 231, 214, 0.72);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+
+/* ---- Responsive ladder ----
+   Four stops: wide desktop (above), narrow desktop, tablet/stacked, phone.
+   Plus a height rule, because a short landscape window fails for reasons a
+   width breakpoint can't see. */
+
+/* Narrow desktop — the middle track shrinks first; it's spacing, not content. */
+@media (max-width: 1280px) {
+  .office-content {
+    grid-template-columns: minmax(0, 21rem) 1fr minmax(0, 28rem);
+    padding-inline: 2.25rem;
+  }
+
+  .office-heading {
+    font-size: clamp(2.4rem, 4vw, 3.2rem);
+  }
+}
+
+/* Stacked. Two side-by-side columns stop working before the phone breakpoint —
+   the form needs ~26rem to stay usable and the copy needs ~20rem to not read as
+   a column of single words. */
+@media (max-width: 1024px) {
+  /* Stacked content runs down the middle, so the side-weighted wash stops
+     matching where the reading is and becomes a bottom-up one. */
+  .room-scrim--right {
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 5, 10, 0.66) 0%,
+      rgba(7, 5, 10, 0.34) 22%,
+      rgba(7, 5, 10, 0.72) 58%,
+      rgba(7, 5, 10, 0.92) 100%
+    );
+  }
+
+  .office-content {
+    grid-template-columns: minmax(0, 32rem);
+    justify-content: center;
+    align-content: start;
+    min-height: 0;
+    gap: 2.25rem;
+    /* Extra floor so the submit button clears the fixed way-out link. */
+    padding: 7rem 1.5rem 6rem;
+  }
+
+  /* Both tracks collapse to one — without this reset the explicit column 3
+     would conjure two empty implicit columns and push the form off-screen. */
+  .office-intro,
+  .office-content > .service-request {
+    grid-column: 1;
+  }
+
+  .office-copy {
+    max-width: none;
+  }
+}
+
+/* Phone. */
+@media (max-width: 640px) {
+  .room-backdrop-img {
+    /* Portrait crops the sides hard; sitting lower keeps desk over ceiling. */
+    --room-focus: center 58%;
+  }
+
+  .office-content {
+    gap: 1.75rem;
+    padding: 6rem 1.1rem 2.5rem;
+  }
+
+  .office-eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+  }
+
+  .office-heading {
+    font-size: clamp(2.1rem, 9vw, 2.9rem);
+  }
+
+  .office-copy {
+    font-size: 0.92rem;
+  }
+}
+
+/* Short and wide — a laptop with browser chrome, or a phone in landscape.
+   Release the full-height centring before it clips the submit button. */
+@media (max-height: 720px) {
+  .office-content {
+    align-content: start;
+    min-height: 0;
+    padding-top: 5.5rem;
+  }
+
+  .office-heading {
+    font-size: clamp(2rem, 3.2vw, 2.6rem);
+  }
+}

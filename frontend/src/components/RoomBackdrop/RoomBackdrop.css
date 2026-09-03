@@ -1,0 +1,81 @@
+/* Fixed behind the content so the room stays put while anything over it
+   scrolls — you're standing in the room rather than scrolling past a picture
+   of one. */
+.room-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.room-backdrop-img {
+  object-fit: cover;
+  /* Rooms are shot wide with the subject low; a centred crop trades furniture
+     for ceiling on short windows. */
+  object-position: var(--room-focus, center 62%);
+
+  /* Walking in: the room settles out of a slow push-in as it arrives.
+     Only transform and opacity are touched — both are composited on the GPU, so
+     this costs no layout and no repaint, which matters because the foyer's
+     frames are still in memory when it plays. */
+  opacity: 0;
+  transform: scale(1.07);
+  transition:
+    opacity 900ms ease-out,
+    transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.room-backdrop.is-ready .room-backdrop-img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Light touch. Panels over the top carry their own backdrop blur, so the scrim
+   doesn't need to blacken anything to make text readable — and blacking it out
+   costs the parts of the room worth showing. Only the top band always earns its
+   keep: the wordmark has to hold against a lit chandelier. */
+.room-scrim {
+  position: absolute;
+  inset: 0;
+}
+
+.room-scrim--right {
+  background:
+    linear-gradient(
+      to right,
+      rgba(7, 5, 10, 0.32) 0%,
+      rgba(7, 5, 10, 0.14) 32%,
+      rgba(7, 5, 10, 0.1) 62%,
+      rgba(7, 5, 10, 0.24) 100%
+    ),
+    linear-gradient(to bottom, rgba(7, 5, 10, 0.6) 0%, transparent 20%);
+}
+
+/* For symmetrical rooms, where a side-weighted wash would visibly tilt a
+   composition that is deliberately even. */
+.room-scrim--bottom {
+  background:
+    linear-gradient(to top, rgba(7, 5, 10, 0.92) 0%, rgba(7, 5, 10, 0.55) 22%, transparent 52%),
+    linear-gradient(to bottom, rgba(7, 5, 10, 0.62) 0%, transparent 20%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-backdrop-img {
+    transform: none;
+    transition: opacity 400ms ease-out;
+  }
+
+  .room-backdrop.is-ready .room-backdrop-img {
+    transform: none;
+  }
+}
+
+/* The backdrop is fixed on desktop for the held-shot effect; on phones it's
+   absolute instead, because iOS Safari renders fixed backgrounds against the
+   largest viewport and the image jumps as the address bar collapses. */
+@media (max-width: 640px) {
+  .room-backdrop {
+    position: absolute;
+    height: 100dvh;
+  }
+}

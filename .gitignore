@@ -1,0 +1,17 @@
+.claude/
+.agents/
+.codex/
+
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/.vercel/
+**/*.tsbuildinfo
+
+**/.env
+**/.env.*
+!**/.env.example
+
+*.log
+.DS_Store

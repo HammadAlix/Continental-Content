@@ -1,0 +1,23 @@
+.door-hotspot {
+  position: absolute;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.door-hotspot:hover,
+.door-hotspot:focus-visible {
+  outline: 2px solid rgba(212, 175, 55, 0.6);
+}
+
+.door-hotspot.is-pending {
+  cursor: default;
+}
+
+.door-hotspot.is-pending:hover {
+  outline-color: rgba(212, 175, 55, 0.25);
+}
+
+/* Naming is handled by the always-visible plaques in RoomDoors — a hover label
+   here as well would sign the same door twice. */

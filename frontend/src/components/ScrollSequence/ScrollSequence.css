@@ -1,0 +1,151 @@
+.scroll-sequence {
+  position: relative;
+  width: 100%;
+  background: #000;
+}
+
+/* Pinned viewport — the canvas stays put while the container scrolls past it. */
+.scroll-sequence-stage {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.scroll-sequence-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-sequence-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: #000;
+  color: #d4af37;
+}
+
+.scroll-sequence-loader-text {
+  font-size: 0.8rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.scroll-sequence-loader-pct {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+}
+
+/* Scroll cue — a full-bleed still gives no hint that it moves, so this says so
+   once and then leaves. It fades in a beat late so it registers as an
+   invitation rather than part of the loading screen. */
+.scroll-sequence-cue {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4af37;
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+
+.scroll-sequence-cue-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: scroll-sequence-cue-in 900ms ease 600ms both;
+}
+
+.scroll-sequence-cue-text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  text-indent: 0.4em; /* offsets the trailing letter-space so it reads centred */
+  /* The frames run from near-black to lit sconces, so the gold needs its own
+     backing to stay legible wherever the cue happens to land. */
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+/* A line that travels down its own track — the direction is the message. */
+.scroll-sequence-cue-line {
+  position: relative;
+  width: 1px;
+  height: 3rem;
+  overflow: hidden;
+  background: rgba(212, 175, 55, 0.18);
+}
+
+.scroll-sequence-cue-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #d4af37 45%,
+    #d4af37 55%,
+    transparent
+  );
+  animation: scroll-sequence-cue-travel 2s ease-in-out infinite;
+}
+
+@keyframes scroll-sequence-cue-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Retired near the foyer, restored on the way back — so it fades both
+   directions rather than being a one-shot. */
+.scroll-sequence-cue.is-gone {
+  opacity: 0;
+}
+
+@keyframes scroll-sequence-cue-travel {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* The cue is an invitation to move, so honouring this leaves it as plain text. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-sequence-cue-inner {
+    animation: none;
+  }
+
+  .scroll-sequence-cue-line::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Hotspots only become clickable once the sequence has landed on the foyer. */
+.scroll-sequence-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+}
+
+.scroll-sequence-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}

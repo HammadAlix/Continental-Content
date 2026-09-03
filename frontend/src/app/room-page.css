@@ -1,0 +1,11 @@
+/* Shared shell for the rooms that are a single held shot — a full-bleed
+   backdrop with a title block over it. The office is not one of these: it
+   carries a form, so it has its own two-column layout in office.css.
+
+   The backdrop is fixed, so this only needs to guarantee a full viewport and a
+   black floor beneath it for the moment before the image decodes. */
+.room-page {
+  position: relative;
+  min-height: 100vh;
+  background: #07050a;
+}

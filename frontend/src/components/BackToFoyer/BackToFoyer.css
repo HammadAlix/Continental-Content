@@ -1,0 +1,100 @@
+/* Bottom centre. The top-left corner sits directly under the navbar and across
+   the office's own heading column, which is why a floating chip up there read
+   as debris; centred along the bottom edge it belongs to the page rather than
+   to either column.
+
+   No box either: a bordered pill competes with the form panel. Just lettering
+   with a rule that draws itself in on hover. */
+.back-to-foyer {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 0;
+  color: #e6c65c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.95);
+  transition: color 200ms ease;
+}
+
+/* Bottom-centre lands on the rug — the brightest, busiest part of the room —
+   where unbacked gold lettering simply disappears. A soft ellipse gives it
+   ground to stand on without the hard edges of a pill, which is what looked
+   like debris in the corner. */
+.back-to-foyer::before {
+  content: "";
+  position: absolute;
+  inset: -1.2rem -3.5rem;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 4, 8, 0.92) 0%,
+    rgba(5, 4, 8, 0.72) 40%,
+    rgba(5, 4, 8, 0) 75%
+  );
+  pointer-events: none;
+}
+
+.back-to-foyer:hover,
+.back-to-foyer:focus-visible {
+  color: #f0d97a;
+}
+
+.back-to-foyer-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The arrow leads the way out. */
+.back-to-foyer:hover .back-to-foyer-arrow,
+.back-to-foyer:focus-visible .back-to-foyer-arrow {
+  transform: translateX(-4px);
+}
+
+/* Underline grown from the left rather than a border that's always on. */
+.back-to-foyer::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-to-foyer:hover::after,
+.back-to-foyer:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-foyer-arrow,
+  .back-to-foyer::after {
+    transition: none;
+  }
+
+  .back-to-foyer:hover .back-to-foyer-arrow {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .back-to-foyer {
+    bottom: 1.25rem;
+    /* The only way out on a phone — keep it a real tap target. */
+    min-height: 2.75rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+  }
+}

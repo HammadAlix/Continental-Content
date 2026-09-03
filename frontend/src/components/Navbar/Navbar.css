@@ -1,0 +1,157 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 2.5rem;
+  transition: background 400ms ease, padding 400ms ease;
+}
+
+/* A soft scrim rather than a solid bar — the mansion should read through it. */
+.navbar.is-scrolled {
+  padding: 0.9rem 2.5rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.35) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.navbar-mark-img,
+.navbar-wordmark-img {
+  width: auto;
+}
+
+.navbar-mark-img {
+  height: 72px;
+}
+
+/* Genuinely transparent, so it composites cleanly on any backdrop. */
+.navbar-wordmark-img {
+  height: 56px;
+}
+
+/* Centred against the viewport rather than the flex row, so the wordmark stays
+   dead centre no matter how wide the mark or the links get. */
+.navbar-wordmark {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.navbar-links a {
+  position: relative;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  transition: color 250ms ease;
+}
+
+.navbar-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.45rem;
+  height: 1px;
+  background: #d4af37;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 300ms ease;
+}
+
+/* The room you're standing in wears the hover state permanently — same gold,
+   same rule, so being there and pointing at it read as one idea rather than
+   two different treatments. */
+.navbar-links a:hover,
+.navbar-links a:focus-visible,
+.navbar-links a.is-current {
+  color: #d4af37;
+}
+
+.navbar-links a:hover::after,
+.navbar-links a:focus-visible::after,
+.navbar-links a.is-current::after {
+  transform: scaleX(1);
+}
+
+.navbar-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar-toggle span {
+  display: block;
+  height: 1px;
+  background: #d4af37;
+}
+
+/* Tablet — the wordmark is the first thing to give up room. */
+@media (max-width: 1100px) {
+  .navbar-wordmark-img {
+    height: 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar {
+    padding: 1rem 1.25rem;
+  }
+
+  .navbar-mark-img {
+    height: 48px;
+  }
+
+  /* Too little width for three elements — the mark and links win. */
+  .navbar-wordmark {
+    display: none;
+  }
+
+  .navbar-toggle {
+    display: flex;
+  }
+
+  .navbar-links {
+    position: absolute;
+    top: 100%;
+    right: 1.25rem;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
+    background: rgba(0, 0, 0, 0.92);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity 250ms ease, transform 250ms ease;
+  }
+
+  .navbar-links.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
