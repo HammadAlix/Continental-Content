@@ -8,6 +8,20 @@
       "when": 1786454946971,
       "tag": "0000_flimsy_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788966573687,
+      "tag": "0001_cloudy_justice",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789482799719,
+      "tag": "0002_furry_freak",
+      "breakpoints": true
     }
   ]
 }

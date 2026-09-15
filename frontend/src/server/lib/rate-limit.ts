@@ -1,65 +1,33 @@
 import "server-only";
+import { createHmac } from "node:crypto";
+import { sql } from "drizzle-orm";
+import { db } from "@/server/db/client";
 
-/**
- * Rate limiting.
- *
- * NOT YET BACKED BY REDIS. Until UPSTASH_REDIS_REST_URL and _TOKEN are set this
- * allows everything and warns once, so the form works in development without a
- * Redis instance.
- *
- * When it is wired up it must use Upstash (or another shared store), never an
- * in-memory counter: each serverless instance has its own memory, so a `Map`
- * here would give every instance its own allowance and reset constantly. That
- * looks like it works locally and does nothing in production.
- */
+export interface RateLimitResult { allowed: boolean; retryAfter?: number }
+export const LIMITS = { perIpPerHour: 3, perIpPerDay: 10 } as const;
 
-export interface RateLimitResult {
-  allowed: boolean;
-  /** Seconds until the caller may try again. Only meaningful when blocked. */
-  retryAfter?: number;
+export async function hashIp(value: string): Promise<string> {
+  const salt = process.env.IP_HASH_SALT;
+  if (!salt || salt.length < 32) throw new Error("A private IP_HASH_SALT is required.");
+  return createHmac("sha256", salt).update(value).digest("hex");
 }
 
-export const LIMITS = {
-  /** Per IP. Generous enough that a real person never sees it. */
-  perIpPerHour: 3,
-  perIpPerDay: 10,
-} as const;
-
-let warned = false;
-
-const configured = () =>
-  Boolean(
-    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-  );
+export async function consumeLimit(key: string, seconds: number, limit: number): Promise<RateLimitResult> {
+  const now = Date.now();
+  const window = Math.floor(now / (seconds * 1000));
+  const expires = new Date((window + 1) * seconds * 1000);
+  const opaqueKey = await hashIp(`office:${key}:${seconds}:${window}`);
+  // Atomic conditional update; concurrent requests cannot pass an exhausted limit.
+  const result = await db().execute(sql`
+    INSERT INTO checkout_limits (key, count, expires_at) VALUES (${opaqueKey}, 1, ${expires.toISOString()}::timestamptz)
+    ON CONFLICT (key) DO UPDATE SET count = checkout_limits.count + 1
+    WHERE checkout_limits.count < ${limit} RETURNING count
+  `);
+  return result.rows.length ? { allowed: true } : { allowed: false, retryAfter: Math.max(1, Math.ceil((expires.getTime() - now) / 1000)) };
+}
 
 export async function checkRateLimit(key: string): Promise<RateLimitResult> {
-  if (!configured()) {
-    if (!warned) {
-      warned = true;
-      console.warn(
-        "[rate-limit] Upstash not configured — all requests allowed. " +
-          "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN before launch."
-      );
-    }
-    return { allowed: true };
-  }
-
-  // TODO: @upstash/ratelimit sliding window, keyed on `key`.
-  void key;
-  return { allowed: true };
-}
-
-/**
- * IPs are personal data and we only need to tell one source from another, which
- * a hash does just as well. Salted so the values aren't a rainbow table of the
- * whole IPv4 space.
- */
-export async function hashIp(ip: string): Promise<string> {
-  const salt = process.env.IP_HASH_SALT ?? "continental";
-  const data = new TextEncoder().encode(`${salt}:${ip}`);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const hourly = await consumeLimit(key, 3600, LIMITS.perIpPerHour);
+  if (!hourly.allowed) return hourly;
+  return consumeLimit(key, 86400, LIMITS.perIpPerDay);
 }

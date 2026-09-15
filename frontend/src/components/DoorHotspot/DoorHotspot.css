@@ -4,11 +4,34 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: outline-color 220ms ease;
 }
 
-.door-hotspot:hover,
-.door-hotspot:focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.6);
+.door-hotspot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(255, 217, 116, 0.12), rgba(212, 151, 39, 0.03) 50%, rgba(255, 207, 92, 0.09));
+  box-shadow:
+    0 0 8px 2px rgba(255, 220, 126, 0.65),
+    0 0 24px 6px rgba(232, 172, 47, 0.4),
+    0 0 48px 12px rgba(212, 151, 39, 0.2),
+    inset 0 0 20px 3px rgba(255, 212, 105, 0.23);
+  transition: opacity 220ms ease;
+}
+
+.door-hotspot:not(.is-pending):hover,
+.door-hotspot:not(.is-pending):focus-visible {
+  outline-color: #ffe39a;
+}
+
+.door-hotspot:not(.is-pending):hover::after,
+.door-hotspot:not(.is-pending):focus-visible::after {
+  opacity: 1;
 }
 
 .door-hotspot.is-pending {
@@ -17,6 +40,11 @@
 
 .door-hotspot.is-pending:hover {
   outline-color: rgba(212, 175, 55, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .door-hotspot,
+  .door-hotspot::after { transition: none; }
 }
 
 /* Naming is handled by the always-visible plaques in RoomDoors — a hover label

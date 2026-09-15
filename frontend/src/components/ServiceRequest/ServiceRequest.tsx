@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { SERVICES } from "@/lib/services";
 import "./ServiceRequest.css";
 
@@ -17,6 +17,8 @@ const EMPTY = {
 
 export default function ServiceRequest() {
   const fieldId = useId();
+  const submitting = useRef(false);
+  const attempt = useRef<{ fingerprint: string; key: string } | null>(null);
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>("idle");
@@ -39,21 +41,34 @@ export default function ServiceRequest() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (status === "sending") return;
+    if (submitting.current) return;
+    submitting.current = true;
 
     setStatus("sending");
     setFailure(null);
 
     try {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(values)));
+      const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      if (!attempt.current) {
+        try { attempt.current = JSON.parse(sessionStorage.getItem("office-submission-attempt") || "null"); } catch { /* In-memory fallback. */ }
+      }
+      if (attempt.current?.fingerprint !== fingerprint) attempt.current = { fingerprint, key: crypto.randomUUID() };
+      try { sessionStorage.setItem("office-submission-attempt", JSON.stringify(attempt.current)); } catch { /* In-memory fallback. */ }
       const response = await fetch("/api/service-requests", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.current.key },
         body: JSON.stringify(values),
+        signal: AbortSignal.timeout(20000),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        if (response.status === 409) {
+          attempt.current = null;
+          try { sessionStorage.removeItem("office-submission-attempt"); } catch { /* Optional storage. */ }
+        }
         setErrors(data.errors ?? {});
         setFailure(
           data.errors ? null : (data.error ?? "The desk didn't take it.")
@@ -68,6 +83,8 @@ export default function ServiceRequest() {
       // Offline, blocked, or the server never answered.
       setFailure("Couldn't reach the desk. Try again in a moment.");
       setStatus("idle");
+    } finally {
+      submitting.current = false;
     }
   };
 
@@ -92,6 +109,8 @@ export default function ServiceRequest() {
           type="button"
           className="service-request-again"
           onClick={() => {
+            attempt.current = null;
+            try { sessionStorage.removeItem("office-submission-attempt"); } catch { /* Optional storage. */ }
             setValues(EMPTY);
             setReference(null);
             setStatus("idle");

@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { coverFit } from "@/lib/coverFit";
 import { mediaUrl } from "@/lib/media";
+import FoyerVideo from "@/components/FoyerVideo/FoyerVideo";
 import "./ScrollSequence.css";
 
 interface ScrollSequenceProps {
@@ -11,6 +12,7 @@ interface ScrollSequenceProps {
   frameCount: number;
   /** How many screen-heights of scrolling the sequence spans. Higher = slower, more deliberate. */
   scrollHeightVh?: number;
+  foyerVideos?: readonly string[];
   /**
    * Ambience loop, tried in order — first source that decodes wins. See
    * AMBIENCE_SOURCES for why there is more than one.
@@ -71,6 +73,7 @@ const CUE_RETIRES_AT = 0.995;
 export default function ScrollSequence({
   frameCount,
   scrollHeightVh = 500,
+  foyerVideos,
   onComplete,
   children,
 }: ScrollSequenceProps) {
@@ -456,7 +459,9 @@ export default function ScrollSequence({
             className={`scroll-sequence-overlay${
               atEnd ? " is-active" : ""
             }`}
+            inert={!atEnd}
           >
+            {foyerVideos && <FoyerVideo sources={foyerVideos} active={atEnd} />}
             {children}
           </div>
         )}

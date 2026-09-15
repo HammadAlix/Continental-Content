@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { assets } from "@/assets/assets";
 import BackToFoyer from "@/components/BackToFoyer/BackToFoyer";
 import Navbar from "@/components/Navbar/Navbar";
-import RoomBackdrop from "@/components/RoomBackdrop/RoomBackdrop";
-import RoomIntro from "@/components/RoomIntro/RoomIntro";
+import MerchRoom from "@/components/MerchRoom/MerchRoom";
 import "../room-page.css";
 
 export const metadata: Metadata = {
@@ -19,12 +17,7 @@ export default function MerchPage() {
       <BackToFoyer />
 
       <main className="room-page">
-        {/* The wardrobe is dead symmetrical around the mirror — a side-weighted
-            scrim would visibly tilt it, so the wash comes up from the floor. */}
-        <RoomBackdrop src={assets.merchRoom} scrim="bottom" focus="center 50%" />
-
-        {/* Placeholder copy — replace once the catalogue exists. */}
-        <RoomIntro eyebrow="The Wardrobe" heading="Merch Room" />
+        <MerchRoom />
       </main>
     </>
   );

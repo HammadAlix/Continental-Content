@@ -127,7 +127,7 @@
 .service-request-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.3rem;
 }
 
 /* The radio itself is replaced by the chip — hidden with clip rather than
@@ -142,12 +142,15 @@
 }
 
 .service-request-option {
-  padding: 0.55rem 0.95rem;
+  max-width: 100%;
+  min-height: 1.65rem;
+  padding: 0.35rem 0.55rem;
   background: rgba(0, 0, 0, 0.28);
   border: 1px solid rgba(212, 175, 55, 0.28);
   color: rgba(232, 224, 207, 0.72);
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
   transition:
@@ -286,8 +289,7 @@
     font-size: 1rem;
   }
 
-  /* Full-width rows: five chips wrapping into ragged lines looks like a
-     mistake at this width, and each one gets a proper tap target this way. */
+  /* Keep the full role names readable and preserve finger-sized tap targets. */
   .service-request-options {
     flex-direction: column;
     gap: 0.4rem;
@@ -297,7 +299,7 @@
     display: flex;
     align-items: center;
     min-height: 2.75rem;
-    padding-inline: 1rem;
+    padding-inline: 0.7rem;
   }
 
   .service-request-submit {

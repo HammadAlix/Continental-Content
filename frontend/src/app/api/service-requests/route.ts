@@ -1,63 +1,38 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { submitServiceRequest } from "@/server/service-requests/service";
+import { officeClientIp, readOfficeBody, RequestError, verifyOfficeRequest } from "@/server/service-requests/http";
+import { consumeLimit } from "@/server/lib/rate-limit";
+import { runOfficeOutbox } from "@/server/service-requests/outbox";
 
-/**
- * POST /api/service-requests
- *
- * HTTP only: read the request, hand it to the service, turn the result into a
- * status code. All the rules live in server/service-requests, which knows
- * nothing about Next.
- */
-
-/** Nothing legitimate comes close; anything larger is refused before parsing. */
-const MAX_BODY_BYTES = 16 * 1024;
+export const runtime = "nodejs";
+export const maxDuration = 60;
+const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
+  NextResponse.json(body, { status, headers: { "Cache-Control": "no-store", ...headers } });
 
 export async function POST(request: Request) {
-  const declared = Number(request.headers.get("content-length") ?? 0);
-  if (declared > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "Request too large." }, { status: 413 });
-  }
-
-  let body: unknown;
-
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Malformed request." }, { status: 400 });
-  }
-
-  // Behind a proxy the first entry is the client; the rest are the hops.
-  const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim() || undefined;
-
-  const result = await submitServiceRequest(body, {
-    ip,
-    userAgent: request.headers.get("user-agent") ?? undefined,
-  });
-
-  switch (result.status) {
-    case "ok":
-      return NextResponse.json({ reference: result.reference });
-
-    case "invalid":
-      return NextResponse.json({ errors: result.errors }, { status: 400 });
-
-    case "rate-limited":
-      return NextResponse.json(
-        { error: "Too many requests. Try again later." },
-        {
-          status: 429,
-          ...(result.retryAfter
-            ? { headers: { "Retry-After": String(result.retryAfter) } }
-            : {}),
-        }
-      );
-
-    case "failed":
-      // The reason is for our logs, not for the caller.
-      return NextResponse.json(
-        { error: "Couldn't take that just now. Please try again." },
-        { status: 500 }
-      );
+    const submissionKey = verifyOfficeRequest(request);
+    const ip = officeClientIp(request);
+    const ingress = await consumeLimit(`ingress:${ip}`, 60, 30);
+    if (!ingress.allowed) return json({ error: "Too many attempts. Please wait before trying again." }, 429, { "Retry-After": String(ingress.retryAfter) });
+    const body = await readOfficeBody(request);
+    const result = await submitServiceRequest(body, { ip, submissionKey, userAgent: request.headers.get("user-agent") ?? undefined });
+    switch (result.status) {
+      case "ok":
+        // Next keeps this work alive after responding; the scheduled worker recovers crashes.
+        after(async () => {
+          try { await runOfficeOutbox(result.reference); }
+          catch { console.error("office_email_worker_failed", { reference: result.reference }); }
+        });
+        return json({ reference: result.reference });
+      case "invalid": return json({ errors: result.errors }, 400);
+      case "conflict": return json({ error: "This submission key belongs to different details. Please submit again." }, 409);
+      case "rate-limited": return json({ error: "Too many requests. Please try again later." }, 429, { "Retry-After": String(result.retryAfter || 3600) });
+      case "failed": return json({ error: "The desk is temporarily unavailable. Please try again shortly." }, 503);
+    }
+  } catch (error) {
+    if (error instanceof RequestError) return json({ error: error.message }, error.status);
+    console.error("office_submission_failed"); // No request bodies, secrets or customer details in logs.
+    return json({ error: "The desk is temporarily unavailable. Please try again shortly." }, 503);
   }
 }

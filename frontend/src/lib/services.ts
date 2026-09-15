@@ -15,29 +15,44 @@ export interface Service {
 
 export const SERVICES: readonly Service[] = [
   {
-    id: "collaboration",
-    label: "Collaboration",
-    note: "Creators and channels looking to work together.",
+    id: "creative-director",
+    label: "Creative Director",
+    note: "Creative vision, concepts, and direction for your project.",
   },
   {
-    id: "sponsorship",
-    label: "Sponsorship",
-    note: "Brands and partners with something to place.",
+    id: "brand-director-designer",
+    label: "Brand Director / Brand Designer",
+    note: "Brand strategy, visual identity, and design direction.",
   },
   {
-    id: "commission",
-    label: "Commission",
-    note: "Editing, production, or content made to brief.",
+    id: "digital-web-developer",
+    label: "Digital Developer / Web Developer",
+    note: "Websites, digital experiences, and development.",
   },
   {
-    id: "press",
-    label: "Press",
-    note: "Interviews, features, and enquiries from media.",
+    id: "video-producer-editor",
+    label: "Video Producer / Video Editor",
+    note: "Video production, editing, and post-production.",
   },
   {
-    id: "other",
-    label: "Other business",
-    note: "Anything that doesn't fit the categories above.",
+    id: "talent-manager",
+    label: "Talent Manager",
+    note: "Talent representation, bookings, and coordination.",
+  },
+  {
+    id: "project-manager",
+    label: "Project Manager",
+    note: "Project planning, timelines, and team coordination.",
+  },
+  {
+    id: "technical-director-streaming-engineer",
+    label: "Technical Director / Streaming Engineer",
+    note: "Live streaming, broadcast systems, and technical direction.",
+  },
+  {
+    id: "production-manager-coordinator",
+    label: "Production Manager / Production Coordinator",
+    note: "Production logistics, scheduling, and crew coordination.",
   },
 ];
 
