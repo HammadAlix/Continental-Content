@@ -3,6 +3,17 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const createLoader = require('./office-loader.cjs');
 
+test('auth footer is hidden regardless of hosting or credential mode', () => {
+  const load = createLoader({});
+  const config = load('server/auth/config.ts');
+  assert.equal(config.hideLocalAuthFooter(), true);
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const source = fs.readFileSync(path.join(__dirname, '../src/server/auth/config.ts'), 'utf8');
+  const footerFunction = source.slice(source.indexOf('export function hideLocalAuthFooter'));
+  assert.doesNotMatch(footerFunction, /process\.env/);
+});
+
 function fixture({ configured = true, userId = 'user_test', user = undefined } = {}) {
   let calls = 0;
   const load = createLoader({

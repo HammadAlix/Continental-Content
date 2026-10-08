@@ -7,7 +7,7 @@ export function isAuthConfigured() {
   );
 }
 
-/** A cosmetic local preview only; deployed instances keep provider branding. */
+/** Cosmetic only: keep the requested footer appearance on localhost and Vercel. */
 export function hideLocalAuthFooter() {
-  return !process.env.VERCEL && process.env.CLERK_SECRET_KEY?.startsWith("sk_test_") === true;
+  return true;
 }
