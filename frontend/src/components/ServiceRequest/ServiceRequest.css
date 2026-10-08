@@ -130,8 +130,7 @@
   gap: 0.3rem;
 }
 
-/* The radio itself is replaced by the chip — hidden with clip rather than
-   display:none so it stays focusable and keyboard arrow-keys still work. */
+/* Native checkboxes stay focusable: Tab moves between chips, Space toggles. */
 .service-request-option input {
   position: absolute;
   width: 1px;

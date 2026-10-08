@@ -49,8 +49,8 @@ export const serviceRequests = pgTable(
 
     name: varchar("name", { length: 80 }).notNull(),
     email: varchar("email", { length: 160 }).notNull(),
-    /** Matches an id in lib/services.ts. */
-    service: varchar("service", { length: 40 }).notNull(),
+    /** Canonical comma-separated IDs from lib/services.ts; legacy single IDs remain valid. */
+    service: text("service").notNull(),
     details: text("details").notNull(),
 
     /**

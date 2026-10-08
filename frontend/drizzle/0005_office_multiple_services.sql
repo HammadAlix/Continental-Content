@@ -1,0 +1,1 @@
+ALTER TABLE "service_requests" ALTER COLUMN "service" SET DATA TYPE text;

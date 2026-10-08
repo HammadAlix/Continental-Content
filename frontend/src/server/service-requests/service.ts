@@ -34,12 +34,16 @@ export async function submitServiceRequest(input: unknown, context: { ip: string
   if (!emailLimit.allowed) return { status: "rate-limited", retryAfter: emailLimit.retryAfter };
 
   const reference = `CC-${key.slice(0, 13).toUpperCase()}`;
-  const label = SERVICES.find((entry) => entry.id === service)!.label;
+  const selectedIds = service.split(",");
+  const labels = SERVICES.filter((entry) => selectedIds.includes(entry.id)).map((entry) => entry.label);
+  const label = labels.join("; ");
+  const subjectLabel = labels.length === 1 ? label : `${labels.length} services`;
+  const serviceLine = `${labels.length === 1 ? "Service" : "Services"}: ${label}`;
   const messages: { kind: string; payload: OfficeEmailPayload }[] = [
-    { kind: "desk", payload: { from, to: desk, replyTo: email, subject: `Service request ${reference} — ${label}`,
-      text: [`Reference: ${reference}`, `Name: ${name}`, `Email: ${email}`, `Service: ${label}`, "", details].join("\n") } },
+    { kind: "desk", payload: { from, to: desk, replyTo: email, subject: `Service request ${reference} — ${subjectLabel}`,
+      text: [`Reference: ${reference}`, `Name: ${name}`, `Email: ${email}`, serviceLine, "", details].join("\n") } },
     { kind: "visitor", payload: { from, to: email, replyTo: desk, subject: `We received your request - ${reference}`,
-      text: [`Hello ${name},`, "", "Your request has been received by the Continental Content desk.", `Reference: ${reference}`, `Service: ${label}`, "", "If your request warrants a reply, it will come from this address.", "", "Continental Content"].join("\n") } },
+      text: [`Hello ${name},`, "", "Your request has been received by the Continental Content desk.", `Reference: ${reference}`, serviceLine, "", "If your request warrants a reply, it will come from this address.", "", "Continental Content"].join("\n") } },
   ];
   // One atomic statement. Only a newly inserted request can enqueue its emails.
   // Concurrent retries conflict safely on either unique key and enqueue nothing.

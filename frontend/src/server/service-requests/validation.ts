@@ -1,4 +1,4 @@
-import { isServiceId } from "@/lib/services";
+import { SERVICES, isServiceId } from "@/lib/services";
 
 /**
  * Validation for an incoming service request.
@@ -22,6 +22,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export interface CleanServiceRequest {
   name: string;
   email: string;
+  /** Canonical comma-separated catalogue IDs; a single choice keeps its old value/hash. */
   service: string;
   details: string;
 }
@@ -40,7 +41,13 @@ export function validateServiceRequest(input: unknown): Validated {
 
   const name = asText(payload.name);
   const email = asText(payload.email).toLowerCase();
-  const service = asText(payload.service);
+  // Accept old single-choice tabs, but never fall back from a malformed new array.
+  const choices = payload.services === undefined ? [asText(payload.service)] : payload.services;
+  const validChoices = Array.isArray(choices) && choices.length > 0 && choices.length <= SERVICES.length &&
+    choices.every((choice) => typeof choice === "string" && isServiceId(choice));
+  const service = validChoices
+    ? SERVICES.filter((entry) => choices.includes(entry.id)).map((entry) => entry.id).join(",")
+    : "";
   const details = asText(payload.details);
 
   // Hidden field, invisible to people and irresistible to naive bots. Reported
@@ -58,8 +65,8 @@ export function validateServiceRequest(input: unknown): Validated {
     errors.email = "A reachable email address, please.";
   }
 
-  if (!isServiceId(service)) {
-    errors.service = "Choose one of the listed services.";
+  if (!validChoices || (payload.services !== undefined && payload.service !== undefined)) {
+    errors.service = "Choose one or more of the listed services.";
   }
 
   if (

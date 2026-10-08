@@ -8,6 +8,67 @@ const { validateServiceRequest } = load('server/service-requests/validation.ts')
 const { sendOfficeEmail } = load('server/lib/mailer.ts');
 const origin = 'http://localhost:3000';
 
+test('multiple services are validated, deduplicated and ordered consistently with legacy requests', () => {
+  const base = { name: 'Test User', email: 'TEST@example.com', details: 'A valid test request.' };
+  const choices = ['project-manager', 'creative-director', 'project-manager'];
+  const result = validateServiceRequest({ ...base, services: choices });
+  assert.equal(result.ok, true);
+  assert.equal(result.value.service, 'creative-director,project-manager');
+  assert.deepEqual(result, validateServiceRequest({ ...base, services: ['creative-director', 'project-manager'] }));
+  assert.deepEqual(validateServiceRequest({ ...base, services: ['creative-director'] }),
+    validateServiceRequest({ ...base, service: 'creative-director' }));
+  const { SERVICES } = load('lib/services.ts');
+  assert.equal(validateServiceRequest({ ...base, services: SERVICES.map(s => s.id) }).value.service, SERVICES.map(s => s.id).join(','));
+  for (const services of [[], null, 'creative-director', [42], [{}], ['creative-director', 'fake'], Array(9).fill('creative-director')]) {
+    assert.equal(validateServiceRequest({ ...base, services }).ok, false);
+  }
+  assert.equal(validateServiceRequest({ ...base }).ok, false);
+  assert.equal(validateServiceRequest({ ...base, services: [], service: 'creative-director' }).ok, false);
+  assert.equal(validateServiceRequest({ ...base, services: ['project-manager'], service: 'creative-director' }).ok, false);
+});
+
+test('all selected services are saved and included in both emails; reordered retries do not enqueue duplicates', async () => {
+  const { PgDialect } = require('drizzle-orm/pg-core');
+  const dialect = new PgDialect();
+  let saved, params, writes = 0;
+  const database = {
+    select: () => ({ from: () => ({ where: async () => saved ? [saved] : [] }) }),
+    execute: async query => {
+      writes++;
+      params = dialect.sqlToQuery(query).params;
+      saved = { reference: params[0], payloadHash: params[2] };
+    },
+  };
+  const localLoad = require('./office-loader.cjs')({
+    '@/server/db/client': { db: () => database },
+    '@/server/lib/rate-limit': { hashIp: async () => 'fixture-hash', checkRateLimit: async () => ({ allowed: true }), consumeLimit: async () => ({ allowed: true }) },
+  });
+  const keys = ['SERVICE_REQUEST_FROM', 'SERVICE_REQUEST_TO', 'RESEND_API_KEY'];
+  const old = keys.map(key => process.env[key]);
+  keys.forEach(key => { process.env[key] = 'fixture-only'; });
+  try {
+    const { SERVICES } = load('lib/services.ts');
+    const ids = SERVICES.map(s => s.id);
+    const body = { name: 'Test User', email: 'test@example.com', services: [...ids].reverse(), details: 'A valid test request.' };
+    const context = { ip: 'fixture-ip', submissionKey: randomUUID() };
+    const { submitServiceRequest } = localLoad('server/service-requests/service.ts');
+    const result = await submitServiceRequest(body, context);
+    assert.equal(result.status, 'ok');
+    assert.equal(params[5], ids.join(','));
+    assert.ok(params[5].length > 40);
+    const messages = JSON.parse(params.at(-1));
+    assert.equal(messages.length, 2);
+    for (const message of messages) for (const service of SERVICES) assert.ok(message.payload.text.includes(service.label));
+    assert.match(messages[0].payload.subject, /8 services/);
+    assert.deepEqual(await submitServiceRequest({ ...body, services: ids }, context), result);
+    assert.equal(writes, 1);
+    assert.equal((await submitServiceRequest({ ...body, services: [ids[0]] }, context)).status, 'conflict');
+    assert.equal(writes, 1);
+  } finally {
+    keys.forEach((key, i) => { if (old[i] === undefined) delete process.env[key]; else process.env[key] = old[i]; });
+  }
+});
+
 test('office rejects wrong origin, content type and missing retry key', () => {
   const old = process.env.APP_URL; process.env.APP_URL = origin;
   try {

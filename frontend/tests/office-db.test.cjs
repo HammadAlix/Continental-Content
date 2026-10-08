@@ -17,7 +17,9 @@ test('office concurrency, limits, durable recovery and replay safety', { skip: p
   const id = randomUUID(), counter = 'fixture:' + id, ip = 'fixture-ip:' + id;
   const reference = 'CC-' + createHash('sha256').update(id).digest('hex').slice(0,13).toUpperCase();
   const email = id + '@example.invalid';
-  const body = { name: 'Automated Test', email, service: 'creative-director', details: 'Automated database test; email delivery is mocked.' };
+  const { SERVICES } = load('lib/services.ts');
+  const services = SERVICES.map(service => service.id);
+  const body = { name: 'Automated Test', email, services, details: 'Automated database test; email delivery is mocked.' };
   const cleanupKeys = [];
   const remember = async (key, seconds) => { cleanupKeys.push(await hashIp('office:' + key + ':' + seconds + ':' + Math.floor(Date.now() / (seconds * 1000)))); };
   await remember(counter, 3600);
@@ -32,8 +34,14 @@ test('office concurrency, limits, durable recovery and replay safety', { skip: p
     const results = await Promise.all([submitServiceRequest(body, context), submitServiceRequest(body, context)]);
     assert.ok(results.every(r => r.status === 'ok'));
     assert.equal(results[0].reference, results[1].reference);
-    assert.equal((await db().select().from(serviceRequests).where(eq(serviceRequests.reference, reference))).length, 1);
-    assert.equal((await db().select().from(officeEmailJobs).where(eq(officeEmailJobs.reference, reference))).length, 2);
+    const rows = await db().select().from(serviceRequests).where(eq(serviceRequests.reference, reference));
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].service, services.join(','));
+    const initialJobs = await db().select().from(officeEmailJobs).where(eq(officeEmailJobs.reference, reference));
+    assert.equal(initialJobs.length, 2);
+    for (const job of initialJobs) for (const service of SERVICES) assert.ok(job.payload.text.includes(service.label));
+    assert.equal((await submitServiceRequest({ ...body, services: [...services].reverse() }, context)).reference, reference);
+    assert.equal((await submitServiceRequest({ ...body, services: [services[0]] }, context)).status, 'conflict');
     assert.equal((await submitServiceRequest({ ...body, details: 'Changed payload should not be accepted.' }, context)).status, 'conflict');
     await runOfficeOutbox(reference);
     let jobs = await db().select().from(officeEmailJobs).where(eq(officeEmailJobs.reference, reference));

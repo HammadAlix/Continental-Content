@@ -10,7 +10,7 @@ type Status = "idle" | "sending" | "sent";
 const EMPTY = {
   name: "",
   email: "",
-  service: "",
+  services: [] as string[],
   details: "",
   courtesy: "",
 };
@@ -25,9 +25,9 @@ export default function ServiceRequest() {
   const [reference, setReference] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
-  const selected = SERVICES.find((service) => service.id === values.service);
+  const selected = SERVICES.filter((service) => values.services.includes(service.id));
 
-  const update = (field: keyof typeof EMPTY, value: string) => {
+  const update = (field: Exclude<keyof typeof EMPTY, "services">, value: string) => {
     setValues((previous) => ({ ...previous, [field]: value }));
     // Clear the field's error as soon as it's touched — leaving it up while
     // someone is fixing it just nags.
@@ -35,6 +35,21 @@ export default function ServiceRequest() {
       if (!previous[field]) return previous;
       const next = { ...previous };
       delete next[field];
+      return next;
+    });
+  };
+
+  const toggleService = (id: string) => {
+    setValues((previous) => ({
+      ...previous,
+      // Stable catalogue order keeps retries identical regardless of click order.
+      services: SERVICES.filter((service) => service.id === id
+        ? !previous.services.includes(id)
+        : previous.services.includes(service.id)).map((service) => service.id),
+    }));
+    setErrors((previous) => {
+      const next = { ...previous };
+      delete next.service;
       return next;
     });
   };
@@ -160,22 +175,25 @@ export default function ServiceRequest() {
         )}
       </div>
 
-      <fieldset className="service-request-services">
+      <fieldset className="service-request-services" disabled={status === "sending"}
+        aria-describedby={`${fieldId}-services-help${errors.service ? ` ${fieldId}-services-error` : ""}`}>
         <legend>Nature of business</legend>
+        <span id={`${fieldId}-services-help`} className="service-request-note">Select one or more. Click again to deselect.</span>
         <div className="service-request-options">
           {SERVICES.map((service) => (
             <label
               key={service.id}
               className={`service-request-option${
-                values.service === service.id ? " is-selected" : ""
+                values.services.includes(service.id) ? " is-selected" : ""
               }`}
             >
               <input
-                type="radio"
-                name="service"
+                type="checkbox"
+                name="services"
                 value={service.id}
-                checked={values.service === service.id}
-                onChange={(e) => update("service", e.target.value)}
+                checked={values.services.includes(service.id)}
+                onChange={() => toggleService(service.id)}
+                aria-invalid={Boolean(errors.service)}
               />
               {service.label}
             </label>
@@ -183,9 +201,9 @@ export default function ServiceRequest() {
         </div>
         {/* Reserves its own line whether or not anything is selected, so
             picking an option doesn't shunt the rest of the form downward. */}
-        <span className="service-request-note">{selected?.note ?? " "}</span>
+        <span className="service-request-note" aria-live="polite">{selected.length > 1 ? `${selected.length} services selected.` : selected[0]?.note ?? " "}</span>
         {errors.service && (
-          <span className="service-request-error">{errors.service}</span>
+          <span id={`${fieldId}-services-error`} className="service-request-error">{errors.service}</span>
         )}
       </fieldset>
 
