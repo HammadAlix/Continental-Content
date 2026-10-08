@@ -4,6 +4,7 @@ interface RoomIntroProps {
   eyebrow: string;
   heading: React.ReactNode;
   copy?: string;
+  children?: React.ReactNode;
 }
 
 /**
@@ -15,12 +16,13 @@ interface RoomIntroProps {
  * their copy sits low and centred instead, on the floor wash, where it reads as
  * a caption to the room rather than a panel dropped on top of it.
  */
-export default function RoomIntro({ eyebrow, heading, copy }: RoomIntroProps) {
+export default function RoomIntro({ eyebrow, heading, copy, children }: RoomIntroProps) {
   return (
     <div className="room-intro">
       <span className="room-intro-eyebrow">{eyebrow}</span>
       <h1 className="room-intro-heading">{heading}</h1>
       {copy && <p className="room-intro-copy">{copy}</p>}
+      {children}
     </div>
   );
 }

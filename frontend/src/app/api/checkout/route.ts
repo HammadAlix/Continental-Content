@@ -7,6 +7,7 @@ import { merchOrders } from "@/server/db/schema";
 import { allowCheckoutRequest } from "@/server/checkout/rate-limit";
 import { checkoutOrigin, stripe } from "@/server/checkout/stripe";
 import { limitedBody } from "@/server/checkout/http";
+import { getPublicCatalogue } from "@/server/merch/catalogue";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -16,14 +17,20 @@ export async function POST(request: Request) {
     const origin = checkoutOrigin();
     if (request.headers.get("origin") !== origin) return NextResponse.json({ error: "Please checkout from the website directly." }, { status: 403 });
     if (!request.headers.get("content-type")?.startsWith("application/json")) return NextResponse.json({ error: "Expected JSON." }, { status: 415 });
+    if (!await allowCheckoutRequest(request, "create")) return NextResponse.json({ error: "Too many checkout attempts. Please try again in an hour." }, { status: 429, headers: { "Retry-After": "3600" } });
+    const products = await getPublicCatalogue();
     let orderInput: ReturnType<typeof validateCheckout>;
-    try { orderInput = validateCheckout(JSON.parse(await limitedBody(request, 12000))); }
+    let input;
+    try {
+      input = JSON.parse(await limitedBody(request, 12000));
+      orderInput = validateCheckout(input, products);
+    }
     catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid bag." }, { status: 400 }); }
+    if (input.expectedSubtotal !== orderInput.subtotal) return NextResponse.json({ error: "Product prices changed. Reload this page to review the current total before paying." }, { status: 409 });
     const client = stripe();
     // Hosted deployments must have a webhook configured before taking checkouts.
     if (process.env.VERCEL && !process.env.STRIPE_WEBHOOK_SECRET) return NextResponse.json({ error: "Test checkout is awaiting webhook setup." }, { status: 503 });
     const database = db();
-    if (!await allowCheckoutRequest(request, "create")) return NextResponse.json({ error: "Too many checkout attempts. Please try again in an hour." }, { status: 429, headers: { "Retry-After": "3600" } });
     const cartHash = createHash("sha256").update(JSON.stringify({ items: orderInput.items, total: orderInput.total, origin })).digest("hex");
     await database.insert(merchOrders).values({ id: randomUUID(), ...orderInput, cartHash }).onConflictDoNothing({ target: merchOrders.attemptId });
     const [order] = await database.select().from(merchOrders).where(eq(merchOrders.attemptId, orderInput.attemptId));

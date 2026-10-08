@@ -1,39 +1,14 @@
-"use client";
+import Navbar from "@/components/Navbar/Navbar";
+import LegacyFoyer from "@/components/RoomDoors/LegacyFoyer";
+import { getFoyerAdminAllowed } from "@/server/auth/admin";
 
-import { useRouter } from "next/navigation";
-import VideoHub from "@/components/VideoHub/VideoHub";
-import DoorHotspot from "@/components/DoorHotspot/DoorHotspot";
-
-export default function FoyerPage() {
-  const router = useRouter();
-
+export const dynamic = "force-dynamic";
+export default async function FoyerPage() {
+  const foyerAdminAllowed = await getFoyerAdminAllowed();
   return (
     <div style={{ position: "relative" }}>
-      <VideoHub src="/videos/foyer-loop.mp4" />
-      <DoorHotspot
-        label="Don Wick's Office"
-        top="40%"
-        left="45%"
-        width="10%"
-        height="30%"
-        onClick={() => router.push("/office")}
-      />
-      <DoorHotspot
-        label="Theatre Room"
-        top="40%"
-        left="20%"
-        width="10%"
-        height="30%"
-        onClick={() => router.push("/theatre")}
-      />
-      <DoorHotspot
-        label="Merch Room"
-        top="40%"
-        left="70%"
-        width="10%"
-        height="30%"
-        onClick={() => router.push("/merch")}
-      />
+      <Navbar foyerAdminAllowed={foyerAdminAllowed} />
+      <LegacyFoyer />
     </div>
   );
 }

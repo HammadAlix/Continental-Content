@@ -5,15 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { assets } from "@/assets/assets";
+import FoyerAdminLink from "./FoyerAdminLink";
 import "./Navbar.css";
 
 const LINKS = [
   { label: "Office", href: "/office" },
   { label: "Theatre", href: "/theatre" },
   { label: "Merch", href: "/merch" },
+  { label: "Membership", href: "/membership" },
+  { label: "Account", href: "/account" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ foyerAdminAllowed = false }: { foyerAdminAllowed?: boolean }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -60,6 +63,7 @@ export default function Navbar() {
       </button>
 
       <ul className={`navbar-links${open ? " is-open" : ""}`}>
+        {(pathname === "/" || pathname === "/foyer") && <FoyerAdminLink key={String(foyerAdminAllowed)} initialAllowed={foyerAdminAllowed} onNavigate={() => setOpen(false)} />}
         {LINKS.map((link) => {
           const current = pathname === link.href;
 
@@ -67,6 +71,7 @@ export default function Navbar() {
             <li key={link.href}>
               <Link
                 href={link.href}
+                prefetch={link.href === "/theatre" ? false : undefined}
                 className={current ? "is-current" : undefined}
                 // Marks the room you're standing in for assistive tech, which
                 // the underline alone doesn't convey.

@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { assets } from "@/assets/assets";
 import {
-  MERCH_CART_KEY, MERCH_HOTSPOTS, MERCH_PRODUCTS, MERCH_DISPLAYS,
+  MERCH_CART_KEY, MERCH_HOTSPOTS, MERCH_DISPLAYS,
   money, readMerchCart, type CartLine, type MerchProduct, type MerchSize, type MerchHotspot, type MerchGroup,
 } from "@/lib/merch";
 import "./MerchRoom.css";
@@ -26,12 +26,15 @@ function GarmentCutout({ spot }: { spot: MerchHotspot }) {
 }
 
 function ProductImage({ product }: { product: MerchProduct }) {
+  if (product.imageUrl) return <Image unoptimized src={product.imageUrl} alt={product.name} width={500} height={500} className="merch-product-image" style={{ objectFit: "contain", maxWidth: "100%" }} />;
   return <div className="merch-product-image merch-photo-pending" role="img" aria-label={`Photo coming soon: ${product.name}`}>
     <span aria-hidden="true">CC</span><small>Photo coming soon</small>
   </div>;
 }
 
-export default function MerchRoom() {
+export default function MerchRoom({ products: MERCH_PRODUCTS }: { products: readonly MerchProduct[] }) {
+  const [sceneState, setSceneState] = useState<"loading" | "ready" | "error">("loading");
+  const [sceneEntered, setSceneEntered] = useState(false);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [notice, setNotice] = useState("");
@@ -79,11 +82,11 @@ export default function MerchRoom() {
   useEffect(() => {
     // Load after hydration, without overwriting a saved cart with the initial empty state.
     const timer = window.setTimeout(() => {
-      setCart(readMerchCart());
+      setCart(readMerchCart(MERCH_PRODUCTS));
       cartReady.current = true;
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [MERCH_PRODUCTS]);
 
   useEffect(() => {
     if (!cartReady.current) return;
@@ -115,11 +118,16 @@ export default function MerchRoom() {
   const total = cart.reduce((sum, line) => sum + (MERCH_PRODUCTS.find((p) => p.id === line.productId)?.price || 0) * line.quantity, 0);
 
   return (
-    <div className={`merch-experience${spotlight ? " is-spotlighting" : ""}`}>
-      <section className="merch-scene" aria-label="Shop the wardrobe: select a garment">
+    <div className={`merch-experience${sceneState !== "loading" ? " is-scene-ready" : ""}${spotlight ? " is-spotlighting" : ""}`}>
+      <section className="merch-scene" aria-label="Shop the wardrobe: select a garment"
+        inert={!sceneEntered || sceneState !== "ready"}
+        onAnimationEnd={(event) => {
+          if (event.target === event.currentTarget && ["merch-room-enter", "merch-room-fade"].includes(event.animationName)) setSceneEntered(true);
+        }}>
         {/* The image and all hotspots share one cover-sized plane, including its crop. */}
         <div className="merch-plane">
-          <Image src={assets.merchRoom} alt="The Continental wardrobe, with red-and-black varsity jackets, black hoodies, tees, a patterned jersey, and a gorilla-emblem jacket in the centre." fill priority sizes="100vw" className="merch-room-image" />
+          <Image src={assets.merchRoom} alt="The Continental wardrobe, with red-and-black varsity jackets, black hoodies, tees, a patterned jersey, and a gorilla-emblem jacket in the centre." fill priority sizes="100vw" className="merch-room-image"
+            onLoad={() => setSceneState("ready")} onError={() => setSceneState("error")} />
           {MERCH_HOTSPOTS.map((spot) => {
             const display = MERCH_DISPLAYS[spot.productId];
             const rect = spot.rect;
@@ -144,6 +152,8 @@ export default function MerchRoom() {
         <div className="merch-scene-shade" />
       </section>
 
+      {sceneState === "error" && <p className="merch-scene-error" role="status">The room artwork could not load. You can still view the collection and your bag.</p>}
+
       {spotlight && <div className="merch-hover-caption" aria-hidden="true" style={{ left: spotlight.labelX, top: spotlight.labelY }}>
         <strong>{MERCH_DISPLAYS[spotlight.spot.productId].label}</strong>
         <span>Explore collection <small>Illustrative room display</small></span>
@@ -166,16 +176,16 @@ export default function MerchRoom() {
 
       <section className="merch-mobile-collection" aria-label="All wardrobe pieces">
         <p className="merch-eyebrow">Explore every piece</p>
-        <Collection onSelect={(product) => setPanel({ kind: "product", product })} />
+        <Collection products={MERCH_PRODUCTS} onSelect={(product) => setPanel({ kind: "product", product })} />
       </section>
       <div className={`merch-toast${notice ? " is-visible" : ""}`} role="status">{notice}</div>
 
       {panel && <MerchDialog onClose={() => setPanel(null)} title={panel.kind === "product" ? panel.product.name : panel.kind === "cart" ? "Your bag" : "The collection"}>
         {panel.kind === "product" && <ProductDetails key={panel.product.id} product={panel.product} onAdd={addToCart} />}
         {panel.kind === "collection" && <>
-          <p className="merch-muted">Nine pieces in the collection. Product photos are coming soon; the room displays are illustrative.</p>
-          <Collection group={panel.group} onSelect={(product) => setPanel({ kind: "product", product })} />
-          {panel.group && <button className="merch-secondary" onClick={() => setPanel({ kind: "collection" })}>View all nine products</button>}
+          <p className="merch-muted">{MERCH_PRODUCTS.length} pieces in the collection. The room displays are illustrative.</p>
+          <Collection products={MERCH_PRODUCTS} group={panel.group} onSelect={(product) => setPanel({ kind: "product", product })} />
+          {panel.group && <button className="merch-secondary" onClick={() => setPanel({ kind: "collection" })}>View all products</button>}
         </>}
         {panel.kind === "cart" && <>
           {cart.length ? <>
@@ -212,7 +222,7 @@ export default function MerchRoom() {
   );
 }
 
-function Collection({ onSelect, group }: { group?: MerchGroup; onSelect: (product: MerchProduct) => void }) {
+function Collection({ products: MERCH_PRODUCTS, onSelect, group }: { products: readonly MerchProduct[]; group?: MerchGroup; onSelect: (product: MerchProduct) => void }) {
   return <div className="merch-collection-grid">
     {MERCH_PRODUCTS.filter((product) => !group || product.group === group).map((product) => <button key={product.id} className="merch-collection-card" onClick={() => onSelect(product)} aria-haspopup="dialog">
       <div className="merch-collection-photo"><ProductImage product={product} /><span aria-hidden="true">↗</span></div>
@@ -227,7 +237,7 @@ function ProductDetails({ product, onAdd }: { product: MerchProduct; onAdd: (pro
   const [size, setSize] = useState<MerchSize | null>(null);
   const [quantity, setQuantity] = useState(1);
   return <div className="merch-product-details">
-    <div className="merch-detail-photo"><ProductImage product={product} /><span>Product photography coming soon</span></div>
+    <div className="merch-detail-photo"><ProductImage product={product} />{!product.imageUrl && <span>Product photography coming soon</span>}</div>
     <p className="merch-eyebrow">{product.category}</p>
     <div className="merch-product-price">{money(product.price)} <small>USD</small></div>
     <p className="merch-description">{product.description}</p>

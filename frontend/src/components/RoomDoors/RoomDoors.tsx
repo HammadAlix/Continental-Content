@@ -111,7 +111,7 @@ export default function RoomDoors() {
    */
   const warm = useCallback(
     (room: Room) => {
-      if (room.status === "live") router.prefetch(room.route);
+      if (room.status === "live" && room.route !== "/theatre") router.prefetch(room.route);
     },
     [router]
   );

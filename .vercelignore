@@ -1,0 +1,26 @@
+# Deploy only the application, never local credentials or operator/test material.
+.git
+.claude
+.agents
+.codex
+.aws
+backend
+**/node_modules
+**/.next
+**/.vercel
+**/.clerk
+**/.claude
+**/.agents
+**/.codex
+**/.aws
+**/.env*
+**/*.pem
+**/*.key
+**/*.log
+**/*.tsbuildinfo
+**/coverage
+**/test-results
+**/playwright-report
+**/scripts
+**/tests
+**/*.md

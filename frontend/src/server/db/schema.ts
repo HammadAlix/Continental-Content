@@ -1,5 +1,6 @@
 import {
   index,
+  boolean,
   integer,
   jsonb,
   pgTable,
@@ -8,6 +9,25 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { MerchProduct } from "@/lib/merch";
+
+export const merchProducts = pgTable("merch_products", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  data: jsonb("data").$type<MerchProduct>().notNull(),
+  published: boolean("published").notNull().default(false),
+  revision: integer("revision").notNull().default(1),
+  imageBase64: text("image_base64"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const merchProductAudit = pgTable("merch_product_audit", {
+  id: serial("id").primaryKey(),
+  productId: varchar("product_id", { length: 80 }).notNull(),
+  actorId: text("actor_id").notNull(),
+  revision: integer("revision").notNull(),
+  snapshot: jsonb("snapshot").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, table => [index("merch_audit_created_idx").on(table.createdAt)]);
 
 /**
  * Database schema. One table per domain concept; this file is the single
@@ -101,4 +121,38 @@ export const checkoutLimits = pgTable("checkout_limits", {
   key: varchar("key", { length: 96 }).primaryKey(),
   count: integer("count").notNull().default(1),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+// Theatre is separate from guest merchandise checkout. All records currently
+// belong to Stripe TEST mode; do not use them as live payment entitlements.
+export const theatreMembers = pgTable("theatre_members", {
+  userId: text("user_id").primaryKey(),
+  customerId: text("customer_id").unique(),
+  checkoutAttempt: text("checkout_attempt").notNull(),
+  checkoutStartedAt: timestamp("checkout_started_at", { withTimezone: true }).notNull().defaultNow(),
+  checkoutSessionId: text("checkout_session_id").unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const theatreSubscriptions = pgTable("theatre_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => theatreMembers.userId),
+  customerId: text("customer_id").notNull(),
+  status: text("status").notNull(),
+  paidThrough: timestamp("paid_through", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  livemode: boolean("livemode").notNull().default(false),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("theatre_subscriptions_user_idx").on(table.userId)]);
+
+export const theatreVideos = pgTable("theatre_videos", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  muxAssetId: text("mux_asset_id").notNull().unique(),
+  playbackId: text("playback_id").unique(),
+  status: text("status").notNull().default("preparing"),
+  published: boolean("published").notNull().default(false),
+  isSample: boolean("is_sample").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

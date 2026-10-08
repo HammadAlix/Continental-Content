@@ -48,7 +48,7 @@
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1.6rem;
   list-style: none;
 }
 
@@ -102,6 +102,20 @@
   cursor: pointer;
 }
 
+.navbar-owner-entry a {
+  color: #edcc66;
+  border: 1px solid rgba(212, 175, 55, .5);
+  padding: .65rem .8rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+
+/* Owner navigation has an extra item; prevent overlap with the centred logo. */
+@media (max-width: 1650px) {
+  .navbar:has(.navbar-owner-entry) .navbar-wordmark { display: none; }
+}
+
 .navbar-toggle span {
   display: block;
   height: 1px;
@@ -109,9 +123,9 @@
 }
 
 /* Tablet — the wordmark is the first thing to give up room. */
-@media (max-width: 1100px) {
-  .navbar-wordmark-img {
-    height: 40px;
+@media (max-width: 1500px) {
+  .navbar-wordmark {
+    display: none;
   }
 }
 
@@ -144,6 +158,7 @@
     background: rgba(0, 0, 0, 0.92);
     border: 1px solid rgba(212, 175, 55, 0.25);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
     transform: translateY(-8px);
     transition: opacity 250ms ease, transform 250ms ease;
@@ -151,6 +166,7 @@
 
   .navbar-links.is-open {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
   }

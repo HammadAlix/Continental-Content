@@ -3,6 +3,22 @@
 .merch-experience button:focus-visible { outline: 2px solid #f7dd9d; outline-offset: 5px; }
 .merch-experience button:disabled { opacity: .45; cursor: not-allowed; }
 .merch-scene { position: fixed; inset: 0; height: 100svh; overflow: hidden; }
+/* Reveal only after Next Image has decoded. Animate the whole scene so the
+   image, shade and garment hit areas always share the same coordinates. */
+.merch-scene { opacity: 0; }
+.merch-experience.is-scene-ready .merch-scene { opacity: 1; animation: merch-room-enter 1200ms cubic-bezier(.16, 1, .3, 1) backwards; }
+.merch-experience:not(.is-scene-ready) :is(.merch-room-caption, .merch-shop-tools) { visibility: hidden; }
+.merch-experience.is-scene-ready :is(.merch-room-caption, .merch-shop-tools) { animation: merch-room-fade 650ms 150ms ease-out backwards; }
+.merch-scene-error { position: relative; z-index: 5; padding: 130px 24px 24px; text-align: center; }
+@keyframes merch-room-enter {
+  from { opacity: 0; transform: scale(1.04); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes merch-room-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .merch-experience.is-scene-ready .merch-scene { animation: merch-room-fade 400ms ease-out backwards; }
+  .merch-experience.is-scene-ready :is(.merch-room-caption, .merch-shop-tools) { animation-duration: 400ms; animation-delay: 0ms; }
+}
 /* One image-sized plane keeps every garment outline aligned through cover cropping. */
 .merch-plane { position: absolute; top: 50%; left: 50%; width: max(100%, calc(100svh * 2752 / 1536)); aspect-ratio: 2752 / 1536; transform: translate(-50%, -50%); }
 .merch-room-image { object-fit: fill; transition: filter 420ms ease; }

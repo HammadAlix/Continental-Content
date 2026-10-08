@@ -12,6 +12,7 @@ export type MerchProduct = {
   price: number; // USD cents.
   description: string;
   sizes: readonly MerchSize[];
+  imageUrl?: string;
 };
 
 export const MERCH_PRODUCTS: readonly MerchProduct[] = [
@@ -60,15 +61,15 @@ export type MerchHotspot = (typeof MERCH_HOTSPOTS)[number];
 export type CartLine = { productId: string; size: MerchSize; quantity: number };
 export const MERCH_CART_KEY = "continental-merch-preview-v1";
 export const money = (cents: number) => new Intl.NumberFormat("en-US", {
-  style: "currency", currency: "USD", maximumFractionDigits: 0,
+  style: "currency", currency: "USD",
 }).format(cents / 100);
 
-export function readMerchCart(): CartLine[] {
+export function readMerchCart(products: readonly MerchProduct[] = MERCH_PRODUCTS): CartLine[] {
   try {
     const saved: unknown = JSON.parse(localStorage.getItem(MERCH_CART_KEY) || "[]");
     if (!Array.isArray(saved)) return [];
     return saved.filter((line): line is CartLine => !!line &&
-      MERCH_PRODUCTS.some((product) => product.id === line.productId && product.sizes.includes(line.size)) && Number.isInteger(line.quantity) &&
+      products.some((product) => product.id === line.productId && product.sizes.includes(line.size)) && Number.isInteger(line.quantity) &&
       line.quantity > 0 && line.quantity <= 10).slice(0, 25);
   } catch { return []; }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MERCH_CART_KEY, readMerchCart } from "@/lib/merch";
+import { MERCH_CART_KEY } from "@/lib/merch";
 import { checkoutMoney } from "@/lib/checkout";
 
 type Receipt = { reference: string; status: string; total: number; shipping: number; items: { productId: string; name: string; size: string; quantity: number; unitAmount: number }[] };
@@ -28,7 +28,8 @@ export default function SuccessPage() {
           try {
             const purchased = sessionStorage.getItem(`merch-purchase:${sessionId}`);
             // Only clear an unchanged bag, never items added after checkout began.
-            if (purchased && purchased === JSON.stringify(readMerchCart())) localStorage.removeItem(MERCH_CART_KEY);
+            const current = localStorage.getItem(MERCH_CART_KEY);
+            if (purchased && current && purchased === JSON.stringify(JSON.parse(current))) localStorage.removeItem(MERCH_CART_KEY);
             sessionStorage.removeItem(`merch-purchase:${sessionId}`);
           } catch { /* Receipt still works with storage disabled. */ }
         } else if (data.status === "pending" && ++polls < 8) timer = setTimeout(verify, 3000);

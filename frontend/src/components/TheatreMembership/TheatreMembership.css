@@ -1,0 +1,40 @@
+.theatre-membership { width: min(100%, 960px); padding: clamp(1rem, 4vw, 3rem); background: rgba(18,15,11,.96); border: 1px solid #5c4b28; color: #eee6d5; border-radius: .6rem; }
+.theatre-membership h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+.theatre-membership h2 { margin-top: 2rem; }
+.theatre-membership p { margin: .8rem 0; line-height: 1.6; }
+.theatre-membership .theatre-price { color: #e0bf59; font-size: 1.5rem; }
+.theatre-membership .theatre-warning { color: #dfc99b; font-size: .85rem; }
+.theatre-buttons { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+.theatre-membership button { min-height: 44px; padding: .7rem 1rem; background: #d4af37; color: #171410; border: 1px solid #e3c665; border-radius: .3rem; cursor: pointer; }
+.theatre-membership button:disabled { opacity: .5; cursor: not-allowed; }
+.theatre-membership button:focus-visible { outline: 2px solid white; outline-offset: 4px; }
+.theatre-membership mux-player { width: 100%; aspect-ratio: 16/9; margin-top: 1.5rem; }
+.theatre-library { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 1.4rem; margin-top: 1.4rem; }
+.theatre-library .theatre-card { min-width: 0; border: 1px solid #5c4b28; border-radius: .5rem; background: #17130e; overflow: hidden; }
+.theatre-membership .theatre-card-button { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; color: #eee6d5; text-align: left; font: inherit; }
+.theatre-card-button:hover .theatre-card-action, .theatre-card-button:focus-visible .theatre-card-action { color: #ffe7a0; }
+.theatre-membership .theatre-card-button:focus-visible { outline-offset: -3px; }
+.theatre-card-poster { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: radial-gradient(ellipse at center, #3e3020, #100e0b); }
+.theatre-card-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.theatre-card-button:hover img { transform: scale(1.035); }
+.theatre-card-placeholder { color: #d2b968; text-align: center; font: 400 1.2rem var(--font-display), Georgia, serif; letter-spacing: .12em; }
+.theatre-card-placeholder > span { font: 500 .55rem var(--font-geist-sans), Arial, sans-serif; letter-spacing: .25em; }
+.theatre-card-play { position: absolute; display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid #e3c665; border-radius: 50%; background: #17130ebf; color: #ffe7a0; padding-left: 3px; font-size: 17px; box-shadow: 0 3px 16px #0008; }
+.theatre-card-copy { display: flex; flex: 1; flex-direction: column; gap: .7rem; padding: 1.2rem; width: 100%; }
+.theatre-card-label { color: #c5ab6c; text-transform: uppercase; letter-spacing: .16em; font-size: .65rem; }
+.theatre-card-title { font: 400 clamp(1.4rem, 2.5vw, 1.8rem) var(--font-display), Georgia, serif; line-height: 1.2; overflow-wrap: anywhere; }
+.theatre-card-description { color: #bdb4a2; font-size: .85rem; line-height: 1.6; overflow-wrap: anywhere; }
+.theatre-card-action { display: flex; justify-content: space-between; gap: 1rem; margin-top: auto; padding-top: .8rem; color: #d4af37; font-size: .75rem; letter-spacing: .04em; }
+.theatre-player-dialog { position: fixed; inset: 0; margin: auto; width: min(1000px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); overflow: auto; padding: 0; border: 1px solid #8d743d; border-radius: .65rem; background: #100e0b; color: #eee6d5; box-shadow: 0 24px 100px #000b; }
+.theatre-player-dialog::backdrop { background: #050403e8; backdrop-filter: blur(8px); }
+.theatre-player-header { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.3rem; background: #15110d; border-bottom: 1px solid #5c4b28; }
+.theatre-player-header > div { min-width: 0; }
+.theatre-membership .theatre-player-header p { margin: 0 0 .3rem; }
+.theatre-membership .theatre-player-header h2 { margin: 0; font: 400 clamp(1.3rem, 3vw, 2rem) var(--font-display), Georgia, serif; overflow-wrap: anywhere; }
+.theatre-membership .theatre-player-close { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; color: #f3d98e; font: 300 2rem Arial, sans-serif; }
+.theatre-membership .theatre-player-dialog mux-player { display: block; margin: 0; width: 100%; aspect-ratio: 16/9; }
+.theatre-player-loading { display: grid; place-items: center; min-height: 160px; aspect-ratio: 16/9; color: #c5ab6c; }
+.theatre-player-error { padding: .8rem 1.3rem; }
+.theatre-membership .theatre-player-description { margin: 0; padding: 1rem 1.3rem; color: #bdb4a2; font-size: .9rem; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .theatre-player-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); } .theatre-player-header { padding: .8rem; } }
+@media (prefers-reduced-motion: reduce) { .theatre-card-poster img { transition: none; } .theatre-card-button:hover img { transform: none; } }

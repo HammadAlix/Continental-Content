@@ -1,0 +1,19 @@
+.membership-offer { width: min(100%, 1120px); display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; padding: clamp(.5rem, 3vw, 2rem); }
+.member-page .membership-offer h1 { font-size: clamp(2.9rem, 5.8vw, 5.3rem); line-height: 1.02; margin: 1.3rem 0 1.6rem; }
+.membership-offer-lead { font-size: 1.05rem; line-height: 1.8; color: #e0d6c2; max-width: 31rem; }
+.membership-offer-note { line-height: 1.8; color: #aa9e87; font-size: .85rem; margin: 1.4rem 0; }
+.membership-plan { padding: clamp(1.5rem, 4vw, 3rem); border: 1px solid #776039; background: linear-gradient(145deg, #272016, #14110c 70%); box-shadow: 0 25px 70px #0005; }
+.membership-plan h2 { margin: .7rem 0 1.3rem; line-height: 1.25; }
+.membership-plan-price { color: #e8ca7c; font-size: clamp(1.5rem, 3vw, 2rem); }
+.membership-plan ul { list-style: none; padding: 0; margin: 1.6rem 0; border-top: 1px solid #66552c80; }
+.membership-plan li { padding: .85rem 0 .85rem 1.3rem; position: relative; border-bottom: 1px solid #66552c80; line-height: 1.65; font-size: .9rem; }
+.membership-plan li::before { content: "\2713"; position: absolute; left: 0; color: #dfc475; }
+.membership-plan-terms, .membership-setup-note, .membership-join p { font-size: .8rem; line-height: 1.75; color: #bdb09a; }
+.membership-join { margin-top: 1.4rem; }
+.membership-join .member-button { width: 100%; }
+.membership-join .member-button:disabled { opacity: .6; cursor: not-allowed; }
+.membership-join p { margin-top: .8rem; }
+.membership-setup-note { border-top: 1px solid #66552c80; padding-top: 1.2rem; margin-top: 1.5rem; }
+.membership-setup-note p + p { margin-top: .7rem; }
+.membership-plan [role="alert"] { color: #ffcbac; font-size: .85rem; line-height: 1.7; margin-top: 1rem; }
+@media (max-width: 800px) { .membership-offer { grid-template-columns: 1fr; max-width: 38rem; gap: 2rem; } }

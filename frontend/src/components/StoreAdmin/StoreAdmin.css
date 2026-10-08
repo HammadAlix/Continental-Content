@@ -1,0 +1,30 @@
+.member-panel.store-admin-panel { width: min(100%, 1000px); max-width: 1000px; }
+.store-admin { margin-top: 24px; text-align: left; min-width: 0; }
+.store-admin-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+.store-admin button, .store-admin a { color: #edcc66; }
+.store-admin button { border: 1px solid #756334; background: #221e16; border-radius: 6px; padding: 12px 16px; cursor: pointer; font: inherit; }
+.store-admin button:disabled { opacity: .5; cursor: wait; }
+.store-admin :focus-visible { outline: 2px solid #edcc66; outline-offset: 4px; }
+.store-admin label { display: grid; gap: 8px; margin: 14px 0; font-size: 14px; }
+.store-admin input:not([type=checkbox]), .store-admin select, .store-admin textarea {
+  box-sizing: border-box; width: 100%; min-width: 0; color: #f4ecdc; background: #181611;
+  border: 1px solid #776b4d; padding: 12px; border-radius: 5px; font: inherit;
+}
+.store-admin input[readonly] { opacity: .65; }
+.store-admin-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; max-height: 400px; overflow: auto; padding: 4px; }
+.store-admin-list button { text-align: left; display: grid; gap: 8px; overflow-wrap: anywhere; }
+.store-admin-list span { color: #d0c6b3; font-size: 13px; }
+.store-admin-editor { margin-top: 28px; border-top: 1px solid #756334; padding-top: 20px; }
+.store-admin fieldset { min-width: 0; border: 0; padding: 0; }
+.store-admin .store-admin-sizes { border: 1px solid #756334; padding: 8px 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+.store-admin .store-admin-sizes label, .store-admin .store-admin-check { display: flex; align-items: center; }
+.store-admin input[type=checkbox] { width: 20px; height: 20px; accent-color: #d2b347; }
+.store-admin-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.store-admin-preview { max-width: 100%; object-fit: contain; background: #111; }
+.store-admin .store-admin-error { color: #ffb6ae; border-left: 3px solid #ffb6ae; padding-left: 12px; }
+.store-admin details { margin-top: 28px; overflow-wrap: anywhere; }
+.store-admin summary { cursor: pointer; padding: 12px 0; }
+.store-admin li { margin-bottom: 10px; }
+@media (max-width: 600px) {
+  .store-admin-list, .store-admin-columns { grid-template-columns: 1fr; }
+}

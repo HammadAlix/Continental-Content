@@ -22,6 +22,20 @@
       "when": 1789482799719,
       "tag": "0002_furry_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791037507392,
+      "tag": "0003_rainy_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791113481946,
+      "tag": "0004_fluffy_marrow",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,30 @@
+.member-page { position: relative; min-height: 100dvh; background: radial-gradient(ellipse at top, #292217 0, #100e0b 48%, #090807 100%); color: #f4ecd8; font-family: var(--font-geist-sans), Arial, sans-serif; }
+.member-page::after { content: ""; position: fixed; inset: 0; background: rgba(7, 5, 3, .65); pointer-events: none; }
+.member-header, .member-content, .member-footer { position: relative; z-index: 2; }
+.member-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.5rem clamp(1rem, 4vw, 4rem); }
+.member-header > a:last-child { font-size: .8rem; padding: .8rem 0; }
+.member-brand { font-family: var(--font-display), Georgia, serif; color: #dfc475; font-size: 1.7rem; }
+.member-brand span { display: block; font-family: var(--font-geist-sans), Arial, sans-serif; text-transform: uppercase; font-size: .6rem; letter-spacing: .45em; margin-top: .25rem; }
+.member-content { min-height: calc(100dvh - 180px); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem 3rem; }
+.member-panel { width: 100%; max-width: 35rem; padding: clamp(1.4rem, 4vw, 3rem); background: rgba(19, 16, 11, .96); border: 1px solid #66552c; box-shadow: 0 24px 80px #0008; }
+.member-page h1 { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.08; margin: .7rem 0 1rem; }
+.member-page h2 { font-family: var(--font-display), Georgia, serif; font-size: 1.8rem; font-weight: 400; }
+.member-panel p { font-size: .9rem; line-height: 1.75; margin: .7rem 0; }
+.member-page .member-eyebrow { color: #dfc475; font-size: .65rem; text-transform: uppercase; letter-spacing: .24em; }
+.member-muted, .member-introduction { color: #c2b9a7; }
+.member-email { overflow-wrap: anywhere; }
+.member-page .member-status { color: #dfc475; font-size: .75rem; }
+.member-subscription { padding: 1.5rem 0; margin: 1.5rem 0; border-block: 1px solid #66552c; }
+.member-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1rem 0; }
+.member-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .8rem 1.2rem; margin-top: .5rem; border: 1px solid #d4af37; background: #d4af37; color: #171410; font: 500 .85rem var(--font-geist-sans), Arial, sans-serif; cursor: pointer; text-align: center; }
+.member-button-secondary { color: #dfc475; background: transparent; }
+.member-text-link { color: #dfc475; text-decoration: underline; text-underline-offset: .25em; font-size: .85rem; }
+.member-page a:focus-visible, .member-page button:focus-visible { outline: 2px solid #ffe39a; outline-offset: 5px; }
+.member-footer { text-align: center; padding: 1rem 1.5rem 2rem; font-size: .75rem; line-height: 1.8; color: #c2b9a7; }
+.member-footer a { text-decoration: underline; text-underline-offset: .2em; }
+.member-auth-section { width: 100%; max-width: 29rem; text-align: center; }
+.member-introduction { line-height: 1.7; font-size: .88rem; margin: 0 0 1.5rem; }
+.member-auth-root, .member-auth-card { width: 100%; max-width: 100%; }
+.member-auth-switch { margin-top: 1.25rem; font-size: .85rem; line-height: 1.7; color: #c2b9a7; }
+.member-settings { width: 100%; max-width: 56rem; }
+@media (max-width: 480px) { .member-header { align-items: flex-start; } .member-brand { font-size: 1.35rem; } .member-header > a:last-child { font-size: .7rem; } .member-content { padding-top: 1rem; } }
