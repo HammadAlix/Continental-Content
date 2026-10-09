@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
+import FoyerAudio from "@/components/FoyerAudio/FoyerAudio";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({
     >
       <body>
         {children}
+        <FoyerAudio />
       </body>
     </html>
   );
