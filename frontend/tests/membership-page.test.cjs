@@ -54,6 +54,7 @@ test('billing and screening copy omits Apple setup notices while retaining test-
   });
   const Screenings = loadComponent('components/TheatreMembership/TheatreScreenings.tsx', {
     '@mux/mux-player-react': () => null,
+    '@/components/FoyerAudio/musicFocus': require('./office-loader.cjs')()('components/FoyerAudio/musicFocus.ts'),
   });
   const billing = renderToStaticMarkup(React.createElement(Billing, { enabled: true }));
   const screenings = renderToStaticMarkup(React.createElement(Screenings, { videos: [] }));

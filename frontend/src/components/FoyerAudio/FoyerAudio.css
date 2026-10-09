@@ -20,11 +20,20 @@
   cursor: pointer;
 }
 .foyer-sound svg { width: 19px; height: 19px; flex: none; }
+.foyer-sound[hidden] { display: none; }
+/* Clear the Merch bag controls; keep the existing room layouts untouched. */
+.foyer-sound[data-room="/merch"] { bottom: max(11rem, env(safe-area-inset-bottom)); }
 .foyer-sound:hover { border-color: #e5c66c; background: #241c0ef5; }
 .foyer-sound:focus-visible { outline: 2px solid #e5c66c; outline-offset: 4px; }
 @media (max-width: 600px) {
   .foyer-sound {
     right: max(.85rem, env(safe-area-inset-right));
     bottom: max(.85rem, env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 767px) {
+  /* Room return links occupy the bottom edge on narrow screens. */
+  .foyer-sound:is([data-room="/office"], [data-room="/merch"], [data-room="/theatre"]) {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom));
   }
 }

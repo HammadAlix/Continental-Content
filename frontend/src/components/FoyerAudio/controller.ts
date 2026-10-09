@@ -1,17 +1,21 @@
-export type SoundState = "off" | "loading" | "on" | "error";
+import { isMusicSuspended, subscribeMusicFocus } from "./musicFocus";
+
+export type SoundState = "off" | "loading" | "on" | "paused" | "error";
+// Retain the preference key so existing visitors' mute choices still apply.
 export const FOYER_SOUND_PREFERENCE = "continental:foyer-sound";
 
-export function isFoyerPath(path: string | null) {
-  return path === "/" || path === "/foyer";
+export function isMusicRoomPath(path: string | null) {
+  return path !== null && ["/", "/foyer", "/office", "/merch", "/theatre"].includes(path);
 }
 
-/** One foyer session. No autoplay or audio download before a user gesture. */
+/** One persistent room session. No audio download before a user gesture. */
 export function connectFoyerAudio(
   audio: HTMLAudioElement,
   button: HTMLButtonElement,
   onState: (state: SoundState) => void,
 ) {
   let enabled = true;
+  let roomActive = false;
   let activated = false;
   let disposed = false;
   let pending = false;
@@ -22,12 +26,12 @@ export function connectFoyerAudio(
   } catch { /* Storage may be unavailable in private/restricted browsers. */ }
   audio.volume = 0.25;
 
-  const allowed = () => !disposed && enabled && !document.hidden;
+  const allowed = () => !disposed && roomActive && enabled && !document.hidden && !isMusicSuspended();
   const pause = () => {
     attempt += 1;
     pending = false;
     audio.pause();
-    if (!disposed) onState("off");
+    if (!disposed) onState(enabled && isMusicSuspended() ? "paused" : "off");
   };
   const start = async () => {
     if (!allowed() || pending || !audio.paused) return;
@@ -55,13 +59,14 @@ export function connectFoyerAudio(
     catch { /* Audio controls still work without persistence. */ }
   };
   const toggle = () => {
-    if (pending || !audio.paused) {
+    if (pending || !audio.paused || (enabled && isMusicSuspended())) {
       enabled = false;
       pause();
     } else {
       enabled = true;
       if (failed) audio.load();
-      void start();
+      if (isMusicSuspended()) onState("paused");
+      else void start();
     }
     savePreference();
   };
@@ -88,6 +93,11 @@ export function connectFoyerAudio(
     audio.pause();
     if (!disposed) onState("error");
   };
+  const releaseFocusSubscription = subscribeMusicFocus(() => {
+    if (isMusicSuspended()) pause();
+    else if (activated && enabled && !failed) void start();
+    else if (!disposed) onState("off");
+  });
   button.addEventListener("click", toggle);
   document.addEventListener("pointerup", interact);
   document.addEventListener("keydown", interact);
@@ -96,9 +106,10 @@ export function connectFoyerAudio(
   window.addEventListener("pageshow", pageShow);
   audio.addEventListener("error", mediaError);
 
-  return () => {
+  const dispose = () => {
     disposed = true;
     pause();
+    releaseFocusSubscription();
     button.removeEventListener("click", toggle);
     document.removeEventListener("pointerup", interact);
     document.removeEventListener("keydown", interact);
@@ -106,5 +117,14 @@ export function connectFoyerAudio(
     window.removeEventListener("pagehide", pageHide);
     window.removeEventListener("pageshow", pageShow);
     audio.removeEventListener("error", mediaError);
+  };
+  return {
+    dispose,
+    setRoomActive(active: boolean) {
+      if (disposed || active === roomActive) return;
+      roomActive = active;
+      if (!active) pause();
+      else if (activated && enabled && !failed) void start();
+    },
   };
 }

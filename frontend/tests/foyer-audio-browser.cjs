@@ -15,11 +15,11 @@ async function main() {
     let audioRequests = 0;
     page.on('request', request => { if (request.url().includes('/audio/')) audioRequests++; });
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('button', { name: 'Turn foyer music on' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Turn background music on' })).toBeVisible();
     await page.waitForTimeout(1000);
     assert.equal(audioRequests, 0, 'Audio must not download before interaction');
-    await page.getByRole('button', { name: 'Turn foyer music on' }).click();
-    await expect(page.getByRole('button', { name: 'Mute foyer music' })).toHaveText('Sound on');
+    await page.getByRole('button', { name: 'Turn background music on' }).click();
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
     await expect.poll(() => page.locator('audio').evaluate(audio => audio.currentTime)).toBeGreaterThan(.2);
     assert.ok(audioRequests > 0);
     assert.equal(await page.locator('audio').evaluate(audio => audio.volume), .25);
@@ -28,49 +28,79 @@ async function main() {
     await page.locator('audio').evaluate(audio => { audio.currentTime = audio.duration - .3; });
     await expect.poll(() => page.locator('audio').evaluate(audio => audio.currentTime)).toBeLessThan(3);
     console.log('PASS: audio loops at its end');
-    await page.getByRole('button', { name: 'Mute foyer music' }).click();
+    await page.getByRole('button', { name: 'Mute background music' }).click();
     assert.equal(await page.locator('audio').evaluate(audio => audio.paused), true);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1000);
     await page.mouse.click(700, 120);
     assert.equal(await page.locator('audio').evaluate(audio => audio.paused), true);
-    await page.getByRole('button', { name: 'Turn foyer music on' }).focus();
+    await page.getByRole('button', { name: 'Turn background music on' }).focus();
     await page.keyboard.press('Enter');
-    await expect(page.getByRole('button', { name: 'Mute foyer music' })).toHaveText('Sound on');
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
     console.log('PASS: mute persists through reload; keyboard can enable sound');
 
     await page.evaluate(() => { window.__foyerAudioTest = document.querySelector('audio'); });
     await page.getByRole('link', { name: 'Office', exact: true }).click();
     await page.waitForURL('**/office');
-    await expect(page.locator('.foyer-sound')).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => window.__foyerAudioTest?.paused)).toBe(true);
-    assert.equal(await page.locator('audio').count(), 0);
-    console.log('PASS: client-side room navigation removes control and stops previous audio');
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
+    assert.equal(await page.evaluate(() => window.__foyerAudioTest === document.querySelector('audio')), true);
+    assert.equal(await page.locator('audio').evaluate(audio => audio.paused), false);
+    await page.getByRole('link', { name: 'Merch', exact: true }).click();
+    await page.waitForURL('**/merch');
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
+    assert.equal(await page.evaluate(() => window.__foyerAudioTest === document.querySelector('audio')), true);
+    await expect(page.locator('.merch-bag-button')).toBeVisible();
+    assertNoOverlap(await page.locator('.foyer-sound').boundingBox(), await page.locator('.merch-bag-button').boundingBox());
+    console.log('PASS: Office and Merch preserve one playing audio element; desktop bag stays clear');
+    await page.getByRole('link', { name: 'Membership', exact: true }).click();
+    await page.waitForURL('**/membership');
+    await expect(page.locator('.foyer-sound')).toBeHidden();
+    await expect.poll(() => page.locator('audio').evaluate(audio => audio.paused)).toBe(true);
+    await page.goBack({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
+    console.log('PASS: pricing is silent; returning to a room resumes the existing player');
 
     await page.goto(`${baseURL}/foyer`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('button', { name: 'Turn foyer music on' })).toBeVisible();
-    await page.getByRole('button', { name: 'Turn foyer music on' }).click();
-    await expect(page.getByRole('button', { name: 'Mute foyer music' })).toHaveText('Sound on');
+    await expect(page.getByRole('button', { name: 'Turn background music on' })).toBeVisible();
+    await page.getByRole('button', { name: 'Turn background music on' }).click();
+    await expect(page.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
     console.log('PASS: legacy foyer supports the same audio control');
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     await mobile.goto(baseURL, { waitUntil: 'domcontentloaded' });
-    await expect(mobile.getByRole('button', { name: 'Turn foyer music on' })).toBeVisible();
+    await expect(mobile.getByRole('button', { name: 'Turn background music on' })).toBeVisible();
     await mobile.waitForTimeout(1000);
     await mobile.getByRole('button', { name: 'Menu', exact: true }).tap();
-    await expect(mobile.getByRole('button', { name: 'Mute foyer music' })).toHaveText('Sound on');
+    await expect(mobile.getByRole('button', { name: 'Mute background music' })).toHaveText('Sound on');
     const box = await mobile.locator('.foyer-sound').boundingBox();
     assert.ok(box.width >= 44 && box.height >= 44);
     assert.ok(box.x >= 0 && box.x + box.width <= 390 && box.y + box.height <= 844);
-    await mobile.getByRole('button', { name: 'Mute foyer music' }).tap();
+    await mobile.getByRole('button', { name: 'Mute background music' }).tap();
     assert.equal(await mobile.locator('audio').evaluate(audio => audio.paused), true);
     console.log('PASS: mobile first interaction starts sound; accessible control fits and mutes');
+    await mobile.getByRole('link', { name: 'Office', exact: true }).tap();
+    await mobile.waitForURL('**/office');
+    await expect(mobile.getByRole('button', { name: 'Turn background music on' })).toBeVisible();
+    assert.equal(await mobile.locator('audio').evaluate(audio => audio.paused), true);
+    assertNoOverlap(await mobile.locator('.foyer-sound').boundingBox(), await mobile.locator('.back-to-foyer').boundingBox());
+    await mobile.getByRole('button', { name: 'Menu', exact: true }).tap();
+    await mobile.getByRole('link', { name: 'Merch', exact: true }).tap();
+    await mobile.waitForURL('**/merch');
+    await expect(mobile.getByRole('button', { name: 'Turn background music on' })).toBeVisible();
+    await expect(mobile.locator('.merch-bag-button')).toBeVisible();
+    assertNoOverlap(await mobile.locator('.foyer-sound').boundingBox(), await mobile.locator('.back-to-foyer').boundingBox());
+    assertNoOverlap(await mobile.locator('.foyer-sound').boundingBox(), await mobile.locator('.merch-bag-button').boundingBox());
+    console.log('PASS: mute persists across mobile rooms; sound control clears bag and return links');
     if (process.env.FOYER_TEST_SCREENSHOT) {
-      await mobile.getByRole('button', { name: 'Menu', exact: true }).tap();
       await mobile.screenshot({ path: process.env.FOYER_TEST_SCREENSHOT });
     }
   } finally {
     await browser.close();
   }
+}
+function assertNoOverlap(a, b) {
+  assert.ok(a && b, 'Both controls must be rendered');
+  assert.ok(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y,
+    'Music control must not overlap room controls');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

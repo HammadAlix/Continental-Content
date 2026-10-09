@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import MuxPlayer from "@mux/mux-player-react";
+import { suspendBackgroundMusic } from "@/components/FoyerAudio/musicFocus";
 import "./TheatreMembership.css";
 
 type Video = { id: string; title: string; description: string; isSample: boolean };
@@ -140,10 +141,12 @@ export default function TheatreScreenings({ videos, initialThumbnails = EMPTY_TH
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     element.showModal();
+    const resumeMusic = suspendBackgroundMusic();
     closeButton.current?.focus();
     document.body.style.overflow = "hidden";
     return () => {
       element.close();
+      resumeMusic();
       document.body.style.overflow = previousOverflow;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
