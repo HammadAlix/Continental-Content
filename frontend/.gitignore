@@ -12,9 +12,7 @@
 
 # testing
 /coverage
-# Keep test code and generated reports on the developer's machine only.
-/tests/
-/scripts/test-*.mjs
+# Test source is versioned; generated reports stay local.
 /test-results/
 /playwright-report/
 
